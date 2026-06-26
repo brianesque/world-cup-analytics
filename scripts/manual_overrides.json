@@ -1,0 +1,45 @@
+[
+  {
+    "_comment": "Verified by hand on 2026-06-25 from FIFA's official match centre, ESPN and Sky Sports, since the source repo hadn't run its daily update yet. Will be ignored automatically once the source marks this match Completed on its own.",
+    "home": "Scotland",
+    "away": "Brazil",
+    "date": "2026-06-24",
+    "stadium_name": "Miami Stadium (Hard Rock Stadium)",
+    "city": "Miami Gardens",
+    "home_score": 0,
+    "away_score": 3,
+    "events": [
+      {"minute": 7,  "event_type": "Goal",   "team_id": 9, "player_id": 215},
+      {"minute": 7,  "event_type": "Assist", "team_id": 9, "player_id": 234},
+      {"minute": 45, "event_type": "Goal",   "team_id": 9, "player_id": 215},
+      {"minute": 45, "event_type": "Assist", "team_id": 9, "player_id": 216},
+      {"minute": 60, "event_type": "Goal",   "team_id": 9, "player_id": 217},
+      {"minute": 60, "event_type": "Assist", "team_id": 9, "player_id": 216}
+    ],
+    "team_stats": []
+  },
+  {
+    "_comment": "Verified by hand on 2026-06-25 from FIFA's official match centre, ESPN and Sky Sports. The 10' Bono own goal is intentionally NOT added as a player 'Goal' event (this schema has no own-goal event type) but IS reflected in the final score below.",
+    "home": "Morocco",
+    "away": "Haiti",
+    "date": "2026-06-24",
+    "stadium_name": "Atlanta Stadium (Mercedes-Benz Stadium)",
+    "city": "Atlanta",
+    "home_score": 4,
+    "away_score": 2,
+    "events": [
+      {"minute": 39, "event_type": "Goal",   "team_id": 10, "player_id": 236},
+      {"minute": 39, "event_type": "Assist", "team_id": 10, "player_id": 257},
+      {"minute": 43, "event_type": "Goal",   "team_id": 11, "player_id": 278},
+      {"minute": 45, "event_type": "Goal",   "team_id": 10, "player_id": 245},
+      {"minute": 45, "event_type": "Assist", "team_id": 10, "player_id": 236},
+      {"minute": 78, "event_type": "Goal",   "team_id": 10, "player_id": 243},
+      {"minute": 78, "event_type": "Assist", "team_id": 10, "player_id": 252},
+      {"minute": 89, "event_type": "Goal",   "team_id": 10, "player_id": 250}
+    ],
+    "team_stats": [
+      {"team_id": 10, "possession_pct": 69, "total_shots": 22, "player_of_the_match": "Soufiane Rahimi", "data_source": "theanalyst.com (Opta)", "last_updated": "2026-06-25"},
+      {"team_id": 11, "possession_pct": 31, "total_shots": 9,  "data_source": "theanalyst.com (Opta)", "last_updated": "2026-06-25"}
+    ]
+  }
+]

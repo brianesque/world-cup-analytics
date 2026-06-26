@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FIFA World Cup 2026 — Live Tournament Tracker</title>
+<style>
+  :root{
+    --bg:#070d1a; --bg-2:#0a1424; --card:#0e1c33; --card-soft:#0c1830;
+    --border: rgba(79,195,247,0.14); --border-strong: rgba(79,195,247,0.35);
+    --accent:#29b6f6; --accent-2:#00e5ff; --accent-soft: rgba(41,182,246,0.15);
+    --good:#3ddc84; --bad:#ff5c6c; --warn:#ffcb4d;
+    --text:#eaf2fb; --text-dim:#7e93b3; --radius:18px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: radial-gradient(circle at 15% 0%, #0c2038 0%, var(--bg) 45%) fixed, var(--bg);
+    color:var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    min-height:100vh; padding:18px 18px 48px;
+  }
+  .app{ max-width:1320px; margin:0 auto; }
+
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;
+    padding:14px 20px; background: linear-gradient(135deg, var(--card), var(--card-soft));
+    border:1px solid var(--border); border-radius: var(--radius); margin-bottom:16px;
+  }
+  .brand{ display:flex; align-items:center; gap:12px; }
+  .brand-mark{
+    width:38px; height:38px; border-radius:10px;
+    background: conic-gradient(from 220deg, var(--accent), var(--accent-2), var(--accent));
+    display:flex; align-items:center; justify-content:center; font-size:18px; box-shadow:0 0 18px var(--accent-soft);
+  }
+  .brand-text .t1{ font-weight:800; font-size:15px; }
+  .brand-text .t2{ font-size:11px; color:var(--text-dim); letter-spacing:1.2px; text-transform:uppercase; }
+  .live-badge{
+    display:flex; align-items:center; gap:6px; background: rgba(61,220,132,0.12); border:1px solid rgba(61,220,132,0.4);
+    color:var(--good); font-size:11px; font-weight:700; letter-spacing:0.5px; padding:6px 12px; border-radius:999px; text-transform:uppercase;
+  }
+  .live-dot{ width:7px; height:7px; border-radius:50%; background:var(--good); box-shadow:0 0 8px var(--good); animation:pulse 1.6s infinite; }
+  @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:0.35;} }
+
+  .kpi-row{ display:grid; grid-template-columns: repeat(5,1fr); gap:14px; margin-bottom:16px; }
+  .kpi{ background: linear-gradient(160deg, var(--card), var(--card-soft)); border:1px solid var(--border); border-radius: var(--radius); padding:16px; text-align:center; }
+  .kpi .num{ font-size:26px; font-weight:800; }
+  .kpi .lbl{ font-size:10.5px; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.5px; margin-top:4px; }
+
+  .layout{ display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-bottom:16px; }
+  .card{
+    background: linear-gradient(160deg, var(--card), var(--card-soft));
+    border:1px solid var(--border); border-radius: var(--radius); padding:18px 18px 16px;
+  }
+  .card h3{ margin:0 0 12px; font-size:13px; text-transform:uppercase; letter-spacing:0.8px; color:var(--text-dim); display:flex; align-items:center; justify-content:space-between; gap:8px; font-weight:700;}
+  .card h3 .left{ display:flex; align-items:center; gap:8px; }
+  .card h3 .dot{ width:6px; height:6px; border-radius:50%; background:var(--accent-2); box-shadow:0 0 8px var(--accent-2); }
+
+  select{
+    background: var(--bg-2); border:1px solid var(--border); color:var(--text);
+    padding:6px 10px; border-radius:8px; font-size:12.5px; outline:none;
+  }
+
+  table{ width:100%; border-collapse:collapse; font-size:12.5px; }
+  th{ text-align:left; color:var(--text-dim); font-weight:600; padding:6px 8px; font-size:10.5px; text-transform:uppercase; letter-spacing:0.3px; border-bottom:1px solid var(--border); }
+  td{ padding:7px 8px; border-bottom:1px solid rgba(255,255,255,0.04); }
+  tr.top3 td:first-child{ color:var(--good); font-weight:700; }
+  .num-cell{ text-align:center; }
+
+  .res-pill{ padding:1px 7px; border-radius:6px; font-size:10.5px; font-weight:700; }
+  .res-completed{ background:rgba(61,220,132,0.15); color:var(--good); }
+  .res-scheduled{ background:rgba(255,203,77,0.15); color:var(--warn); }
+
+  .scroll-list{ max-height:340px; overflow-y:auto; padding-right:4px; }
+  .scroll-list::-webkit-scrollbar{ width:6px; }
+  .scroll-list::-webkit-scrollbar-thumb{ background: var(--border-strong); border-radius:4px; }
+
+  .match-row{ display:flex; align-items:center; justify-content:space-between; padding:9px 4px; border-bottom:1px dashed var(--border); font-size:12.5px; }
+  .match-row:last-child{ border-bottom:none; }
+  .match-row .teams{ display:flex; align-items:center; gap:8px; flex:1; }
+  .match-row .score{ font-weight:800; font-size:14px; min-width:50px; text-align:center; }
+  .match-row .meta{ color:var(--text-dim); font-size:11px; min-width:90px; text-align:right; }
+
+  footer.disclaimer{
+    margin-top:18px; text-align:center; font-size:11.5px; color:var(--text-dim); line-height:1.6;
+    padding:14px 20px; border-top:1px solid var(--border);
+  }
+  footer.disclaimer b{ color:var(--good); }
+
+  @media (max-width:980px){ .layout{ grid-template-columns: 1fr; } .kpi-row{ grid-template-columns: repeat(2,1fr); } }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark">🏆</div>
+      <div class="brand-text">
+        <div class="t1">FIFA World Cup 2026 — Live Tournament Tracker</div>
+        <div class="t2">USA · Canada · Mexico</div>
+      </div>
+    </div>
+    <span class="live-badge"><span class="live-dot"></span> Real data — last updated <span id="lastUpdated">loading…</span></span>
+  </div>
+
+  <div id="loadStatus" style="display:none; background:rgba(255,92,108,0.12); border:1px solid rgba(255,92,108,0.4); color:#ff8e9a; padding:12px 18px; border-radius:12px; margin-bottom:16px; font-size:13px;"></div>
+
+  <div class="kpi-row">
+    <div class="kpi"><div class="num" id="kpiCompleted">0</div><div class="lbl">Matches played</div></div>
+    <div class="kpi"><div class="num" id="kpiRemaining">0</div><div class="lbl">Matches remaining</div></div>
+    <div class="kpi"><div class="num" id="kpiGoals">0</div><div class="lbl">Total goals</div></div>
+    <div class="kpi"><div class="num" id="kpiAvg">0</div><div class="lbl">Goals / match</div></div>
+    <div class="kpi"><div class="num" id="kpiTotal">0</div><div class="lbl">Total matches (104)*</div></div>
+  </div>
+
+  <div class="layout">
+    <div class="card">
+      <h3><div class="left"><span class="dot"></span>Group Standings</div>
+        <select id="groupSelect"></select>
+      </h3>
+      <table id="standingsTable">
+        <thead><tr><th>Team</th><th class="num-cell">P</th><th class="num-cell">W</th><th class="num-cell">D</th><th class="num-cell">L</th><th class="num-cell">GF</th><th class="num-cell">GA</th><th class="num-cell">GD</th><th class="num-cell">Pts</th></tr></thead>
+        <tbody id="standingsBody"></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3><div class="left"><span class="dot"></span>Top Scorers &amp; Assists</div></h3>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+        <table>
+          <thead><tr><th>Player</th><th class="num-cell">G</th></tr></thead>
+          <tbody id="scorersBody"></tbody>
+        </table>
+        <table>
+          <thead><tr><th>Player</th><th class="num-cell">A</th></tr></thead>
+          <tbody id="assistsBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="layout">
+    <div class="card">
+      <h3><div class="left"><span class="dot"></span>Recent Results</div></h3>
+      <div class="scroll-list" id="resultsList"></div>
+    </div>
+    <div class="card">
+      <h3><div class="left"><span class="dot"></span>Upcoming Fixtures</div></h3>
+      <div class="scroll-list" id="fixturesList"></div>
+    </div>
+  </div>
+
+  <div class="layout">
+    <div class="card">
+      <h3><div class="left"><span class="dot"></span>Discipline</div></h3>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+        <table>
+          <thead><tr><th>🟨 Player</th><th class="num-cell">YC</th></tr></thead>
+          <tbody id="yellowBody"></tbody>
+        </table>
+        <table>
+          <thead><tr><th>🟥 Player</th><th class="num-cell">RC</th></tr></thead>
+          <tbody id="redBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <h3><div class="left"><span class="dot"></span>Team Stats (avg. per match played)</div></h3>
+      <div class="scroll-list" style="max-height:340px;">
+        <table>
+          <thead><tr><th>Team</th><th class="num-cell">Poss%</th><th class="num-cell">Shots</th><th class="num-cell">SoT</th><th class="num-cell">Corners</th></tr></thead>
+          <tbody id="teamStatsBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <footer class="disclaimer">
+    <b>Data source:</b> "FIFA World Cup 2026 Dataset" by MD Mominul Islam (CC0, Kaggle / GitHub) — results and team stats sourced and traced from fifa.com and sofascore.com, refreshed daily as matches conclude. *Total matches reflects the 72 group-stage games in this dataset; the full 104-match tournament total includes Round of 32 onward, not yet generated for this competition.<br>
+    <b>Manual patch (25 Jun 2026):</b> Scotland 0–3 Brazil and Morocco 4–2 Haiti (Group C's final matchday) were added by hand from FIFA's official match centre, ESPN and Sky Sports, since the automated source hadn't run its daily update yet at the time of writing. Note: venue/stadium fields for matches still marked "Scheduled" in the underlying source are placeholder values, not confirmed fixtures — only "Completed" matches have verified venues.
+  </footer>
+
+</div>
+
+<script>
+let DATA = null;
+
+async function init() {
+  const statusEl = document.getElementById('loadStatus');
+  try {
+    const res = await fetch('./data.json', { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    DATA = await res.json();
+  } catch (err) {
+    if (statusEl) {
+      statusEl.textContent = 'Could not load live data (data.json). If you are opening this file directly from disk, view it through the GitHub Pages URL instead — local fetch() is blocked by the browser for file:// pages.';
+      statusEl.style.display = 'block';
+    }
+    console.error('Failed to load data.json', err);
+    return;
+  }
+  if (statusEl) statusEl.style.display = 'none';
+
+
+document.getElementById('lastUpdated').textContent = DATA.kpis.last_updated;
+document.getElementById('kpiCompleted').textContent = DATA.kpis.matches_completed;
+document.getElementById('kpiRemaining').textContent = DATA.kpis.matches_remaining;
+document.getElementById('kpiGoals').textContent = DATA.kpis.total_goals;
+document.getElementById('kpiAvg').textContent = DATA.kpis.avg_goals_per_match;
+document.getElementById('kpiTotal').textContent = DATA.kpis.total_matches;
+
+// ---- group standings ----
+const groupSelect = document.getElementById('groupSelect');
+DATA.groups.forEach(g => {
+  const opt = document.createElement('option');
+  opt.value = g; opt.textContent = 'Group ' + g;
+  groupSelect.appendChild(opt);
+});
+function renderStandings(group){
+  const rows = DATA.standings.filter(s => s.group === group);
+  document.getElementById('standingsBody').innerHTML = rows.map((s,i) => `
+    <tr class="${i<2?'top3':''}">
+      <td>${s.team}</td><td class="num-cell">${s.P}</td><td class="num-cell">${s.W}</td>
+      <td class="num-cell">${s.D}</td><td class="num-cell">${s.L}</td><td class="num-cell">${s.GF}</td>
+      <td class="num-cell">${s.GA}</td><td class="num-cell">${s.GD>0?'+':''}${s.GD}</td><td class="num-cell"><b>${s.Pts}</b></td>
+    </tr>`).join('');
+}
+groupSelect.addEventListener('change', e => renderStandings(e.target.value));
+renderStandings(DATA.groups[0]);
+
+// ---- leaderboards ----
+function renderLeaderboard(elId, list, key){
+  document.getElementById(elId).innerHTML = list.slice(0,8).map(r =>
+    `<tr><td>${r.player} <span style="color:#7e93b3; font-size:10.5px;">(${r.team})</span></td><td class="num-cell">${r.count}</td></tr>`
+  ).join('') || '<tr><td colspan="2" style="color:#7e93b3;">No data yet</td></tr>';
+}
+renderLeaderboard('scorersBody', DATA.top_scorers);
+renderLeaderboard('assistsBody', DATA.top_assists);
+renderLeaderboard('yellowBody', DATA.yellow_cards);
+renderLeaderboard('redBody', DATA.red_cards);
+
+// ---- results / fixtures ----
+function renderMatches(elId, list, reverse){
+  const arr = reverse ? [...list].reverse() : list;
+  document.getElementById(elId).innerHTML = arr.map(m => `
+    <div class="match-row">
+      <div class="teams">${m.home} <span class="score">${m.status==='Completed' ? (m.home_score+' - '+m.away_score) : 'vs'}</span> ${m.away}</div>
+      <div class="meta">${m.stage}<br>${m.date}</div>
+    </div>`).join('') || '<div style="color:#7e93b3; padding:10px;">No matches</div>';
+}
+renderMatches('resultsList', DATA.results, true);
+renderMatches('fixturesList', DATA.fixtures, false);
+
+// ---- team stats ----
+document.getElementById('teamStatsBody').innerHTML = DATA.team_stats
+  .sort((a,b)=> b.avg_possession - a.avg_possession)
+  .map(t => `<tr><td>${t.team_name}</td><td class="num-cell">${t.avg_possession}</td><td class="num-cell">${t.avg_shots}</td><td class="num-cell">${t.avg_sot}</td><td class="num-cell">${t.avg_corners}</td></tr>`)
+  .join('');
+
+}
+
+init();
+</script>
+</body>
+</html>
