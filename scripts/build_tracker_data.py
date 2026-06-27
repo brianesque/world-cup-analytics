@@ -157,8 +157,8 @@ def build():
             "home_score": None if pd.isna(m["home_score"]) else int(m["home_score"]),
             "away_score": None if pd.isna(m["away_score"]) else int(m["away_score"]),
             "status": m["status"], "stadium": m["stadium_name"], "city": m["city"],
-            "potm": m.get("player_of_the_match_name", ""),
-            "referee": m.get("referee_name", ""),
+            "potm": "" if pd.isna(m.get("player_of_the_match_name")) else m.get("player_of_the_match_name"),
+            "referee": "" if pd.isna(m.get("referee_name")) else m.get("referee_name"),
         }
 
     results = [match_row(m) for _, m in completed.sort_values("date").iterrows()]
