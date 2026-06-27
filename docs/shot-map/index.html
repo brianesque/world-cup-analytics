@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -20,90 +20,130 @@
     color:var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
     min-height:100vh; padding:18px 18px 48px;
   }
-  .app{ max-width:1320px; margin:0 auto; }
+  .app{ max-width:1380px; margin:0 auto; }
 
   .topbar{
-    display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;
+    display:flex; align-items:center; justify-content:space-between; gap:16px;
     padding:14px 20px; background: linear-gradient(135deg, var(--card), var(--card-soft));
-    border:1px solid var(--border); border-radius: var(--radius); margin-bottom:16px;
+    border:1px solid var(--border); border-radius: var(--radius); margin-bottom:14px;
   }
   .brand{ display:flex; align-items:center; gap:12px; }
   .brand-mark{
-    width:38px; height:38px; border-radius:10px;
-    background: conic-gradient(from 220deg, var(--accent), var(--accent-2), var(--accent));
-    display:flex; align-items:center; justify-content:center; font-size:18px; box-shadow:0 0 18px var(--accent-soft);
+    width:38px; height:38px; border-radius:10px; background:var(--bg-2);
+    display:flex; align-items:center; justify-content:center; font-size:22px;
   }
   .brand-text .t1{ font-weight:800; font-size:15px; }
   .brand-text .t2{ font-size:11px; color:var(--text-dim); letter-spacing:1.2px; text-transform:uppercase; }
   .real-badge{
-    display:flex; align-items:center; gap:6px; background: rgba(61,220,132,0.12); border:1px solid rgba(61,220,132,0.4);
-    color:var(--good); font-size:11px; font-weight:700; letter-spacing:0.5px; padding:6px 12px; border-radius:999px; text-transform:uppercase;
+    display:flex; align-items:center; gap:6px; background: rgba(61,220,132,0.12);
+    border:1px solid rgba(61,220,132,0.4); color:var(--good); font-size:11px; font-weight:700;
+    letter-spacing:0.5px; padding:6px 12px; border-radius:999px; text-transform:uppercase;
   }
 
-  .filters{
-    display:flex; flex-wrap:wrap; gap:10px; padding:16px 20px; background: var(--card-soft);
-    border:1px solid var(--border); border-radius: var(--radius); margin-bottom:16px; align-items:end;
+  .kpi-strip{ display:grid; grid-template-columns:repeat(6,1fr); gap:10px; margin-bottom:14px; }
+  .kpi{
+    background: linear-gradient(160deg, var(--card), var(--card-soft));
+    border:1px solid var(--border); border-radius:14px; padding:14px 10px; text-align:center;
   }
-  .filter-group{ display:flex; flex-direction:column; gap:5px; }
-  .filter-group label{ font-size:10px; text-transform:uppercase; letter-spacing:0.6px; color:var(--text-dim); }
-  .filter-group select, .filter-group input{
-    background: var(--bg-2); border:1px solid var(--border); color:var(--text);
-    padding:8px 10px; border-radius:8px; font-size:13px; outline:none; min-width:140px;
-  }
-  .filter-group select:focus, .filter-group input:focus{ border-color: var(--border-strong); }
-  .toggle-group{ display:flex; gap:6px; }
-  .toggle-btn{
-    background: var(--bg-2); border:1px solid var(--border); color:var(--text-dim);
-    padding:8px 14px; border-radius:8px; font-size:12.5px; cursor:pointer; font-weight:600;
-  }
-  .toggle-btn.active{ background: var(--accent-soft); color:var(--accent-2); border-color:var(--border-strong); }
-  #resetBtn{
-    margin-left:auto; background:transparent; border:1px solid var(--border); color:var(--text-dim);
-    padding:8px 14px; border-radius:8px; font-size:12.5px; cursor:pointer;
-  }
-  #resetBtn:hover{ color:var(--text); border-color: var(--border-strong); }
+  .kpi .num{ font-size:24px; font-weight:800; line-height:1.1; }
+  .kpi .lbl{ font-size:10px; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.5px; margin-top:4px; }
 
-  .layout{ display:grid; grid-template-columns: 1.15fr 1fr; gap:16px; }
+  .main-layout{ display:grid; grid-template-columns:1fr 216px; gap:14px; align-items:start; }
+  .content{ display:flex; flex-direction:column; gap:14px; }
+  .top-row{ display:grid; grid-template-columns:1fr 290px; gap:14px; }
+  .bottom-row{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+
   .card{
     background: linear-gradient(160deg, var(--card), var(--card-soft));
     border:1px solid var(--border); border-radius: var(--radius); padding:18px 18px 16px;
   }
-  .card h3{ margin:0 0 12px; font-size:13px; text-transform:uppercase; letter-spacing:0.8px; color:var(--text-dim); display:flex; align-items:center; gap:8px; font-weight:700;}
-  .card h3 .dot{ width:6px; height:6px; border-radius:50%; background:var(--accent-2); box-shadow:0 0 8px var(--accent-2); }
+  .card h3{
+    margin:0 0 12px; font-size:11.5px; text-transform:uppercase; letter-spacing:0.8px;
+    color:var(--text-dim); display:flex; align-items:center; gap:8px; font-weight:700;
+  }
+  .card h3 .dot{ width:6px; height:6px; border-radius:50%; background:var(--accent-2); flex-shrink:0; }
 
-  .kpi-row{ display:grid; grid-template-columns: repeat(3,1fr); gap:10px; margin-bottom:16px; }
-  .kpi{ background: rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:12px; padding:12px; text-align:center; }
-  .kpi .num{ font-size:24px; font-weight:800; line-height:1.1; }
-  .kpi .lbl{ font-size:10px; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.5px; margin-top:4px; }
+  .map-header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+  .map-header h3{ margin:0; }
+  .view-toggle{ display:flex; gap:6px; }
+  .vbtn{
+    background:var(--bg-2); border:1px solid var(--border); color:var(--text-dim);
+    padding:6px 14px; border-radius:8px; font-size:11.5px; cursor:pointer; font-weight:600;
+  }
+  .vbtn.active{ background:var(--accent-soft); color:var(--accent-2); border-color:var(--border-strong); }
 
-  .pitch-wrap{ display:flex; justify-content:center; }
-  .legend{ display:flex; justify-content:center; gap:16px; margin-top:10px; font-size:11.5px; color:var(--text-dim); flex-wrap:wrap; }
-  .legend span.dotleg{ display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:5px; }
+  .pitch-wrap{ position:relative; }
+  #pitchSvg{ width:100%; display:block; }
+  .legend{ display:flex; justify-content:center; gap:14px; margin-top:8px; font-size:11px; color:var(--text-dim); flex-wrap:wrap; }
+  .legend span.dotleg{ display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:4px; vertical-align:middle; }
+  .heat-legend{ display:flex; justify-content:center; align-items:center; gap:8px; margin-top:8px; font-size:11px; color:var(--text-dim); }
+  .heat-scale{ display:flex; height:8px; width:140px; border-radius:4px; overflow:hidden; }
+  .heat-scale div{ flex:1; }
 
   .tooltip{
     position:fixed; pointer-events:none; background:#0c1830; border:1px solid var(--border-strong);
-    border-radius:10px; padding:8px 12px; font-size:12px; display:none; z-index:50; box-shadow:0 10px 24px rgba(0,0,0,0.5);
-    line-height:1.5;
+    border-radius:10px; padding:8px 12px; font-size:12px; display:none; z-index:50;
+    box-shadow:0 10px 24px rgba(0,0,0,0.5); line-height:1.5;
   }
   .tooltip b{ color:var(--accent-2); }
 
-  .right-stack{ display:flex; flex-direction:column; gap:16px; }
-  .bottom-row{ display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-top:16px; }
+  table.topscorers{ width:100%; border-collapse:collapse; font-size:12px; }
+  table.topscorers th{
+    text-align:left; color:var(--text-dim); font-weight:600; padding:5px 5px;
+    font-size:10px; text-transform:uppercase; border-bottom:1px solid var(--border);
+  }
+  table.topscorers td{ padding:5px 5px; border-bottom:1px solid rgba(255,255,255,0.04); }
+  table.topscorers .rank{ color:var(--text-dim); text-align:center; }
+  table.topscorers .goals{ color:var(--good); font-weight:700; text-align:center; }
+  table.topscorers .shots{ color:var(--text-dim); text-align:center; }
 
-  table.topscorers{ width:100%; border-collapse:collapse; font-size:12.5px; }
-  table.topscorers th{ text-align:left; color:var(--text-dim); font-weight:600; padding:6px 6px; font-size:10.5px; text-transform:uppercase; border-bottom:1px solid var(--border); }
-  table.topscorers td{ padding:7px 6px; border-bottom:1px solid rgba(255,255,255,0.04); }
+  .sidebar{
+    background: linear-gradient(160deg, var(--card), var(--card-soft));
+    border:1px solid var(--border-strong); border-radius:var(--radius); padding:18px;
+    position:sticky; top:18px;
+  }
+  .sidebar-title{
+    display:flex; align-items:center; gap:8px; margin-bottom:16px;
+    font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; color:var(--accent-2);
+  }
+  .sidebar-title .dot{ width:6px; height:6px; border-radius:50%; background:var(--accent-2); flex-shrink:0; }
+  .filter-group{ margin-bottom:14px; }
+  .filter-group label{
+    display:block; font-size:10px; text-transform:uppercase; letter-spacing:0.6px;
+    color:var(--text-dim); margin-bottom:5px;
+  }
+  .filter-group select{
+    background:var(--bg-2); border:1px solid var(--border); color:var(--text);
+    padding:7px 10px; border-radius:8px; font-size:12px; outline:none; width:100%;
+  }
+  .filter-group select:focus{ border-color:var(--border-strong); }
+  .toggle-group{ display:flex; flex-direction:column; gap:4px; }
+  .toggle-btn{
+    background:var(--bg-2); border:1px solid var(--border); color:var(--text-dim);
+    padding:7px 12px; border-radius:8px; font-size:12px; cursor:pointer; font-weight:500; text-align:left;
+  }
+  .toggle-btn.active{ background:var(--accent-soft); color:var(--accent-2); border-color:var(--border-strong); font-weight:600; }
+  #resetBtn{
+    width:100%; margin-top:4px; background:transparent; border:1px solid rgba(255,92,108,0.3);
+    color:var(--bad); padding:8px 14px; border-radius:8px; font-size:12px; cursor:pointer; font-weight:600;
+  }
+  #resetBtn:hover{ background:rgba(255,92,108,0.08); }
 
   footer.disclaimer{
-    margin-top:18px; text-align:center; font-size:11.5px; color:var(--text-dim); line-height:1.6;
+    margin-top:14px; text-align:center; font-size:11.5px; color:var(--text-dim); line-height:1.6;
     padding:14px 20px; border-top:1px solid var(--border);
   }
   footer.disclaimer b{ color:var(--good); }
 
-  @media (max-width:980px){
-    .layout{ grid-template-columns: 1fr; }
-    .bottom-row{ grid-template-columns: 1fr; }
-    .kpi-row{ grid-template-columns: repeat(3,1fr); }
+  @media (max-width:1100px){
+    .main-layout{ grid-template-columns:1fr; }
+    .sidebar{ position:static; }
+    .kpi-strip{ grid-template-columns:repeat(3,1fr); }
+  }
+  @media (max-width:800px){
+    .top-row{ grid-template-columns:1fr; }
+    .bottom-row{ grid-template-columns:1fr; }
+    .kpi-strip{ grid-template-columns:repeat(2,1fr); }
   }
 </style>
 </head>
@@ -112,99 +152,124 @@
 
   <div class="topbar">
     <div class="brand">
-      <div class="brand-mark">🎯</div>
+      <div class="brand-mark">⚽</div>
       <div class="brand-text">
         <div class="t1">World Cup Shot Map</div>
         <div class="t2">2018 &amp; 2022 · Real match data</div>
       </div>
     </div>
-    <span class="real-badge">✓ Real, verified data — StatsBomb Open Data</span>
+    <span class="real-badge">✓ Datos reales verificados — StatsBomb Open Data</span>
   </div>
 
-  <div class="filters">
-    <div class="filter-group">
-      <label>Edition</label>
-      <div class="toggle-group" id="editionToggle">
-        <button class="toggle-btn active" data-val="all">Both</button>
-        <button class="toggle-btn" data-val="2018">2018</button>
-        <button class="toggle-btn" data-val="2022">2022</button>
-      </div>
-    </div>
-    <div class="filter-group">
-      <label>Team</label>
-      <select id="teamFilter"><option value="all">All teams</option></select>
-    </div>
-    <div class="filter-group">
-      <label>Stage</label>
-      <select id="stageFilter"><option value="all">All stages</option></select>
-    </div>
-    <div class="filter-group">
-      <label>Outcome</label>
-      <div class="toggle-group" id="outcomeToggle">
-        <button class="toggle-btn active" data-val="all">All shots</button>
-        <button class="toggle-btn" data-val="Goal">Goals only</button>
-      </div>
-    </div>
-    <div class="filter-group">
-      <label>Body part</label>
-      <select id="bodyFilter"><option value="all">All</option></select>
-    </div>
-    <div class="filter-group">
-      <label>Play pattern</label>
-      <select id="patternFilter"><option value="all">All</option></select>
-    </div>
-    <button id="resetBtn">Reset filters</button>
+  <div class="kpi-strip">
+    <div class="kpi"><div class="num" id="kpiShots">0</div><div class="lbl">Total tiros</div></div>
+    <div class="kpi"><div class="num" id="kpiGoals" style="color:var(--good);">0</div><div class="lbl">Goles</div></div>
+    <div class="kpi"><div class="num" id="kpiConv">0%</div><div class="lbl">Conversión</div></div>
+    <div class="kpi"><div class="num" id="kpiMedian">0 m</div><div class="lbl">Dist. media gol</div></div>
+    <div class="kpi"><div class="num" id="kpiOutbox">0%</div><div class="lbl">Goles fuera del área</div></div>
+    <div class="kpi"><div class="num" id="kpiSixyard">0</div><div class="lbl">Goles área chica</div></div>
   </div>
 
-  <div class="layout">
-    <div class="card">
-      <h3><span class="dot"></span>Shot Map <span style="font-size:9px; color:#50628a; text-transform:none; font-weight:400;">— click a dot for details</span></h3>
-      <div class="pitch-wrap">
-        <svg id="pitchSvg" width="640" height="520" viewBox="0 0 640 520"></svg>
-      </div>
-      <div class="legend">
-        <span><span class="dotleg" style="background:#3ddc84;"></span>Goal</span>
-        <span><span class="dotleg" style="background:#29b6f6;"></span>On target (saved)</span>
-        <span><span class="dotleg" style="background:#9aa7bd;"></span>Blocked</span>
-        <span><span class="dotleg" style="background:#ff5c6c;"></span>Off target</span>
-      </div>
-    </div>
+  <div class="main-layout">
+    <div class="content">
 
-    <div class="right-stack">
-      <div class="card">
-        <h3><span class="dot"></span>Key Numbers</h3>
-        <div class="kpi-row">
-          <div class="kpi"><div class="num" id="kpiShots">0</div><div class="lbl">Total shots</div></div>
-          <div class="kpi"><div class="num" id="kpiGoals">0</div><div class="lbl">Goals</div></div>
-          <div class="kpi"><div class="num" id="kpiConv">0%</div><div class="lbl">Conversion</div></div>
-          <div class="kpi"><div class="num" id="kpiMedian">0 m</div><div class="lbl">Median goal dist.</div></div>
-          <div class="kpi"><div class="num" id="kpiOutbox">0%</div><div class="lbl">Goals outside box</div></div>
-          <div class="kpi"><div class="num" id="kpiSixyard">0</div><div class="lbl">Six-yard box goals</div></div>
+      <div class="top-row">
+        <div class="card">
+          <div class="map-header">
+            <h3><span class="dot"></span>Shot Map <span style="font-size:9px;color:#50628a;text-transform:none;font-weight:400;">— click para detalles</span></h3>
+            <div class="view-toggle">
+              <button class="vbtn active" id="btnDots" onclick="setView('dots')">● Dots</button>
+              <button class="vbtn" id="btnHeat" onclick="setView('heat')">◈ Heatmap</button>
+            </div>
+          </div>
+          <div class="pitch-wrap">
+            <svg id="pitchSvg" viewBox="0 0 640 520"></svg>
+          </div>
+          <div class="legend" id="dotsLegend">
+            <span><span class="dotleg" style="background:#3ddc84;"></span>Gol</span>
+            <span><span class="dotleg" style="background:#29b6f6;"></span>Al arco (atajado)</span>
+            <span><span class="dotleg" style="background:#9aa7bd;"></span>Bloqueado</span>
+            <span><span class="dotleg" style="background:#ff5c6c;"></span>Afuera</span>
+          </div>
+          <div class="heat-legend" id="heatLegend" style="display:none;">
+            <span>Baja densidad</span>
+            <div class="heat-scale">
+              <div style="background:#1a4d0a;"></div><div style="background:#3a7a10;"></div>
+              <div style="background:#78bb18;"></div><div style="background:#d4e01a;"></div>
+              <div style="background:#f0a800;"></div><div style="background:#f05000;"></div>
+              <div style="background:#cc0000;"></div>
+            </div>
+            <span>Alta densidad</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3><span class="dot"></span>Top Scorers <span style="font-size:9px;color:#50628a;text-transform:none;font-weight:400;">(filtro activo)</span></h3>
+          <table class="topscorers">
+            <thead>
+              <tr>
+                <th class="rank">#</th><th>Jugador</th><th>País</th>
+                <th style="text-align:center;">G</th><th style="text-align:center;">Tiros</th><th style="text-align:center;">Dist.</th>
+              </tr>
+            </thead>
+            <tbody id="topScorersBody"></tbody>
+          </table>
         </div>
       </div>
-      <div class="card">
-        <h3><span class="dot"></span>Top Scorers <span style="font-size:9px; color:#50628a; text-transform:none; font-weight:400;">(current filter)</span></h3>
-        <table class="topscorers">
-          <thead><tr><th>Player</th><th>Team</th><th>Goals</th><th>Avg. dist.</th></tr></thead>
-          <tbody id="topScorersBody"></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
 
-  <div class="bottom-row">
-    <div class="card">
-      <h3><span class="dot"></span>By Body Part</h3>
-      <canvas id="bodyChart" height="180"></canvas>
+      <div class="bottom-row">
+        <div class="card">
+          <h3><span class="dot"></span>Por parte del cuerpo</h3>
+          <canvas id="bodyChart"></canvas>
+        </div>
+        <div class="card">
+          <h3><span class="dot"></span>Tiros por distancia (metros)</h3>
+          <canvas id="distChart"></canvas>
+        </div>
+      </div>
+
     </div>
-    <div class="card">
-      <h3><span class="dot"></span>Shot Distance Distribution (m)</h3>
-      <canvas id="distChart" height="180"></canvas>
+
+    <div class="sidebar">
+      <div class="sidebar-title"><span class="dot"></span>Filtros</div>
+
+      <div class="filter-group">
+        <label>Edición</label>
+        <div class="toggle-group" id="editionToggle">
+          <button class="toggle-btn active" data-val="all">Ambas ediciones</button>
+          <button class="toggle-btn" data-val="2018">2018</button>
+          <button class="toggle-btn" data-val="2022">2022</button>
+        </div>
+      </div>
+      <div class="filter-group">
+        <label>Equipo</label>
+        <select id="teamFilter"><option value="all">Todos los equipos</option></select>
+      </div>
+      <div class="filter-group">
+        <label>Fase</label>
+        <select id="stageFilter"><option value="all">Todas las fases</option></select>
+      </div>
+      <div class="filter-group">
+        <label>Resultado</label>
+        <div class="toggle-group" id="outcomeToggle">
+          <button class="toggle-btn active" data-val="all">Todos los tiros</button>
+          <button class="toggle-btn" data-val="Goal">Solo goles</button>
+        </div>
+      </div>
+      <div class="filter-group">
+        <label>Parte del cuerpo</label>
+        <select id="bodyFilter"><option value="all">Todas</option></select>
+      </div>
+      <div class="filter-group">
+        <label>Tipo de jugada</label>
+        <select id="patternFilter"><option value="all">Todas</option></select>
+      </div>
+      <button id="resetBtn">✕ Limpiar filtros</button>
     </div>
   </div>
 
   <footer class="disclaimer">
-    <b>Data source:</b> StatsBomb Open Data (CC BY-NC-SA 4.0, free for personal/portfolio use) — real event data from all 64 matches of the 2018 and 2022 FIFA World Cups. Penalty shootout kicks are excluded. Distances are converted from StatsBomb's standardized pitch units (≈ yards) to meters.
+    <b>Fuente de datos:</b> StatsBomb Open Data (CC BY-NC-SA 4.0, libre para uso personal y portfolio) — datos reales de los 64 partidos de los Mundiales 2018 y 2022. Se excluyen los penales de definición. Las distancias están expresadas en metros.
   </footer>
 
 </div>
@@ -216,49 +281,117 @@ const SHOTS = [{"edition":2018,"match_id":7529,"date":"2018-06-16","home":"Croat
 
 // ---- pitch geometry (StatsBomb attacking half: x 60-120, y 0-80) ----
 const SVG_W = 640, SVG_H = 520;
-const X_MIN = 58, X_MAX = 120; // statsbomb units
+const X_MIN = 58, X_MAX = 120;
 const scaleY = SVG_W / 80;
 const scaleX = SVG_H / (X_MAX - X_MIN);
 function toSvgX(y){ return y * scaleY; }
-function toSvgY(x){ return SVG_H - (x - X_MIN) * scaleX; } // goal line (x=120) at top
+function toSvgY(x){ return SVG_H - (x - X_MIN) * scaleX; }
 
-function drawPitchBase(svg){
+function pitchLines(){
   const lc = 'rgba(255,255,255,0.18)';
-  const els = [];
-  // outer boundary
-  els.push(`<rect x="0" y="0" width="${SVG_W}" height="${SVG_H}" fill="none" stroke="${lc}" stroke-width="2"/>`);
-  // halfway line (x=60)
-  els.push(`<line x1="0" y1="${toSvgY(60)}" x2="${SVG_W}" y2="${toSvgY(60)}" stroke="${lc}" stroke-width="2"/>`);
-  // penalty box x>=102, y 18-62
-  els.push(`<rect x="${toSvgX(18)}" y="${toSvgY(102)}" width="${toSvgX(62)-toSvgX(18)}" height="${toSvgY(102)-toSvgY(120)}" fill="none" stroke="${lc}" stroke-width="2"/>`);
-  // six yard box x>=114, y 30-50
-  els.push(`<rect x="${toSvgX(30)}" y="${toSvgY(114)}" width="${toSvgX(50)-toSvgX(30)}" height="${toSvgY(114)-toSvgY(120)}" fill="none" stroke="${lc}" stroke-width="2"/>`);
-  // goal line + goal mouth (y 36-44)
-  els.push(`<line x1="${toSvgX(36)}" y1="${toSvgY(120)}" x2="${toSvgX(44)}" y2="${toSvgY(120)}" stroke="#3ddc84" stroke-width="5"/>`);
-  // penalty spot x=108,y=40
-  els.push(`<circle cx="${toSvgX(40)}" cy="${toSvgY(108)}" r="2.5" fill="${lc}"/>`);
-  // D arc approx
-  els.push(`<path d="M ${toSvgX(26)} ${toSvgY(102)} A 60 60 0 0 1 ${toSvgX(54)} ${toSvgY(102)}" fill="none" stroke="${lc}" stroke-width="2"/>`);
-  svg.innerHTML = els.join('');
+  return [
+    `<rect x="0" y="0" width="${SVG_W}" height="${SVG_H}" fill="none" stroke="${lc}" stroke-width="2"/>`,
+    `<line x1="0" y1="${toSvgY(60)}" x2="${SVG_W}" y2="${toSvgY(60)}" stroke="${lc}" stroke-width="2"/>`,
+    `<rect x="${toSvgX(18)}" y="${toSvgY(102)}" width="${toSvgX(62)-toSvgX(18)}" height="${toSvgY(102)-toSvgY(120)}" fill="none" stroke="${lc}" stroke-width="2"/>`,
+    `<rect x="${toSvgX(30)}" y="${toSvgY(114)}" width="${toSvgX(50)-toSvgX(30)}" height="${toSvgY(114)-toSvgY(120)}" fill="none" stroke="${lc}" stroke-width="2"/>`,
+    `<line x1="${toSvgX(36)}" y1="${toSvgY(120)}" x2="${toSvgX(44)}" y2="${toSvgY(120)}" stroke="#3ddc84" stroke-width="5"/>`,
+    `<circle cx="${toSvgX(40)}" cy="${toSvgY(108)}" r="2.5" fill="${lc}"/>`,
+    `<path d="M ${toSvgX(26)} ${toSvgY(102)} A 60 60 0 0 1 ${toSvgX(54)} ${toSvgY(102)}" fill="none" stroke="${lc}" stroke-width="2"/>`,
+  ].join('');
 }
+
+function drawPitchBase(svg){ svg.innerHTML = pitchLines(); }
 
 const svg = document.getElementById('pitchSvg');
 drawPitchBase(svg);
 
 const colorMap = { Goal:'#3ddc84', 'On Target':'#29b6f6', Blocked:'#9aa7bd', 'Off Target':'#ff5c6c' };
 const tooltip = document.getElementById('tooltip');
-
 let bodyChart, distChart;
+let viewMode = 'dots';
 
+// ---- view toggle ----
+function setView(v){
+  viewMode = v;
+  document.getElementById('btnDots').classList.toggle('active', v==='dots');
+  document.getElementById('btnHeat').classList.toggle('active', v==='heat');
+  document.getElementById('dotsLegend').style.display = v==='dots' ? 'flex' : 'none';
+  document.getElementById('heatLegend').style.display = v==='heat' ? 'flex' : 'none';
+  render();
+}
+
+// ---- heatmap ----
+const HEAT_COLS = 44, HEAT_ROWS = 36;
+
+function buildHeatGrid(data){
+  const grid = Array.from({length:HEAT_ROWS}, ()=>new Array(HEAT_COLS).fill(0));
+  data.forEach(s => {
+    const gx = Math.min(HEAT_COLS-1, Math.max(0, Math.floor((s.y / 80) * HEAT_COLS)));
+    const gy = Math.min(HEAT_ROWS-1, Math.max(0, Math.floor(((X_MAX - s.x) / (X_MAX - X_MIN)) * HEAT_ROWS)));
+    grid[gy][gx] += s.is_goal ? 2.5 : 1;
+  });
+  return grid;
+}
+
+function blurGrid(grid, passes){
+  const R = HEAT_ROWS, C = HEAT_COLS;
+  for(let p=0;p<passes;p++){
+    const out = Array.from({length:R}, ()=>new Array(C).fill(0));
+    for(let y=0;y<R;y++) for(let x=0;x<C;x++){
+      let sum=0,n=0;
+      for(let dy=-2;dy<=2;dy++) for(let dx=-2;dx<=2;dx++){
+        const ny=y+dy,nx=x+dx;
+        if(ny>=0&&ny<R&&nx>=0&&nx<C){sum+=grid[ny][nx];n++;}
+      }
+      out[y][x]=sum/n;
+    }
+    for(let y=0;y<R;y++) for(let x=0;x<C;x++) grid[y][x]=out[y][x];
+  }
+  return grid;
+}
+
+function heatColor(t){
+  if(t < 0.04) return null;
+  if(t < 0.12) return 'rgba(20,50,10,0.30)';
+  if(t < 0.22) return 'rgba(45,110,10,0.50)';
+  if(t < 0.35) return 'rgba(100,175,5,0.62)';
+  if(t < 0.50) return 'rgba(200,205,0,0.70)';
+  if(t < 0.65) return 'rgba(255,140,0,0.78)';
+  if(t < 0.80) return 'rgba(255,65,0,0.84)';
+  return 'rgba(220,0,0,0.90)';
+}
+
+function renderHeatmap(data){
+  const grid = blurGrid(buildHeatGrid(data), 3);
+  let maxVal = 0;
+  for(const row of grid) for(const v of row) if(v > maxVal) maxVal = v;
+
+  const els = [`<rect x="0" y="0" width="${SVG_W}" height="${SVG_H}" fill="#061008"/>`];
+
+  if(maxVal > 0){
+    const cellW = SVG_W / HEAT_COLS;
+    const cellH = SVG_H / HEAT_ROWS;
+    for(let gy=0;gy<HEAT_ROWS;gy++){
+      for(let gx=0;gx<HEAT_COLS;gx++){
+        const v = grid[gy][gx];
+        if(v < 0.01) continue;
+        const t = Math.pow(v / maxVal, 0.65);
+        const color = heatColor(t);
+        if(!color) continue;
+        els.push(`<rect x="${(gx*cellW).toFixed(1)}" y="${(gy*cellH).toFixed(1)}" width="${(cellW+0.6).toFixed(1)}" height="${(cellH+0.6).toFixed(1)}" fill="${color}"/>`);
+      }
+    }
+  }
+
+  els.push(pitchLines());
+  svg.innerHTML = els.join('');
+}
+
+// ---- filters & state ----
 function uniqueSorted(arr){ return [...new Set(arr)].filter(Boolean).sort(); }
-
 function populateSelect(id, values){
   const sel = document.getElementById(id);
-  values.forEach(v => {
-    const opt = document.createElement('option');
-    opt.value = v; opt.textContent = v;
-    sel.appendChild(opt);
-  });
+  values.forEach(v => { const o=document.createElement('option'); o.value=v; o.textContent=v; sel.appendChild(o); });
 }
 populateSelect('teamFilter', uniqueSorted(SHOTS.map(s=>s.team)));
 const stageOrder = ['Group Stage','Round of 16','Quarter-finals','Semi-finals','3rd Place Final','Final'];
@@ -308,76 +441,87 @@ function filterShots(){
 }
 
 function median(arr){
-  if(arr.length===0) return 0;
-  const s = [...arr].sort((a,b)=>a-b);
-  const mid = Math.floor(s.length/2);
-  return s.length % 2 ? s[mid] : (s[mid-1]+s[mid])/2;
+  if(!arr.length) return 0;
+  const s=[...arr].sort((a,b)=>a-b), mid=Math.floor(s.length/2);
+  return s.length%2 ? s[mid] : (s[mid-1]+s[mid])/2;
 }
 
+// ---- main render ----
 function render(){
   const data = filterShots();
   const goals = data.filter(s => s.is_goal);
 
-  // dots
-  drawPitchBase(svg);
-  const dotsHtml = data.map(s => {
-    const cx = toSvgX(s.y), cy = toSvgY(s.x);
-    const color = colorMap[s.outcome_grp] || '#fff';
-    const r = s.is_goal ? 5.5 : 3.5;
-    const op = s.is_goal ? 0.95 : 0.55;
-    return `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r}" fill="${color}" fill-opacity="${op}" stroke="${s.is_goal?'#fff':'none'}" stroke-width="0.6" data-i="${SHOTS.indexOf(s)}" style="cursor:pointer;"/>`;
-  }).join('');
-  svg.innerHTML += dotsHtml;
-
-  svg.querySelectorAll('circle[data-i]').forEach(c => {
-    c.addEventListener('mousemove', e => {
-      const s = SHOTS[parseInt(c.dataset.i)];
-      tooltip.style.display='block';
-      tooltip.style.left = (e.clientX+14)+'px';
-      tooltip.style.top = (e.clientY+10)+'px';
-      tooltip.innerHTML = `<b>${s.player}</b> (${s.team})<br>${s.minute}' · ${s.outcome} · ${s.dist_m} m<br>${s.body_part} · ${s.play_pattern}<br>xG: ${s.xg}`;
+  // shot map
+  if(viewMode === 'heat'){
+    renderHeatmap(data);
+  } else {
+    drawPitchBase(svg);
+    const dotsHtml = data.map(s => {
+      const cx = toSvgX(s.y), cy = toSvgY(s.x);
+      const color = colorMap[s.outcome_grp] || '#fff';
+      const r = s.is_goal ? 5.5 : 3.5;
+      const op = s.is_goal ? 0.95 : 0.55;
+      return `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r}" fill="${color}" fill-opacity="${op}" stroke="${s.is_goal?'#fff':'none'}" stroke-width="0.6" data-i="${SHOTS.indexOf(s)}" style="cursor:pointer;"/>`;
+    }).join('');
+    svg.innerHTML += dotsHtml;
+    svg.querySelectorAll('circle[data-i]').forEach(c => {
+      c.addEventListener('mousemove', e => {
+        const s = SHOTS[parseInt(c.dataset.i)];
+        tooltip.style.display='block';
+        tooltip.style.left=(e.clientX+14)+'px'; tooltip.style.top=(e.clientY+10)+'px';
+        tooltip.innerHTML=`<b>${s.player}</b> (${s.team})<br>${s.minute}' · ${s.outcome} · ${s.dist_m} m<br>${s.body_part} · ${s.play_pattern}<br>xG: ${s.xg}`;
+      });
+      c.addEventListener('mouseleave', ()=>tooltip.style.display='none');
     });
-    c.addEventListener('mouseleave', () => tooltip.style.display='none');
-  });
+  }
 
   // KPIs
   document.getElementById('kpiShots').textContent = data.length.toLocaleString('en-US');
   document.getElementById('kpiGoals').textContent = goals.length.toLocaleString('en-US');
   document.getElementById('kpiConv').textContent = data.length ? Math.round(goals.length/data.length*100)+'%' : '0%';
-  document.getElementById('kpiMedian').textContent = (goals.length ? median(goals.map(g=>g.dist_m)).toFixed(1) : '0') + ' m';
-  document.getElementById('kpiOutbox').textContent = (goals.length ? Math.round(goals.filter(g=>!g.in_box).length/goals.length*100) : 0) + '%';
+  document.getElementById('kpiMedian').textContent = (goals.length ? median(goals.map(g=>g.dist_m)).toFixed(1) : '0')+' m';
+  document.getElementById('kpiOutbox').textContent = (goals.length ? Math.round(goals.filter(g=>!g.in_box).length/goals.length*100) : 0)+'%';
   document.getElementById('kpiSixyard').textContent = goals.filter(g=>g.six_yard).length;
 
-  // top scorers
+  // top scorers (10) with total shots per player
   const byPlayer = {};
   goals.forEach(g => {
-    if(!byPlayer[g.player]) byPlayer[g.player] = { team:g.team, goals:0, distSum:0 };
-    byPlayer[g.player].goals++;
-    byPlayer[g.player].distSum += g.dist_m;
+    if(!byPlayer[g.player]) byPlayer[g.player]={team:g.team,goals:0,distSum:0,shots:0};
+    byPlayer[g.player].goals++; byPlayer[g.player].distSum+=g.dist_m;
   });
-  const topList = Object.entries(byPlayer).sort((a,b)=>b[1].goals-a[1].goals).slice(0,8);
-  document.getElementById('topScorersBody').innerHTML = topList.map(([name,d]) =>
-    `<tr><td>${name}</td><td>${d.team}</td><td>${d.goals}</td><td>${(d.distSum/d.goals).toFixed(1)} m</td></tr>`
-  ).join('') || '<tr><td colspan="4" style="color:#7e93b3;">No goals in this filter</td></tr>';
+  data.forEach(s => { if(byPlayer[s.player]) byPlayer[s.player].shots++; });
+  const topList = Object.entries(byPlayer).sort((a,b)=>b[1].goals-a[1].goals).slice(0,10);
+  document.getElementById('topScorersBody').innerHTML = topList.map(([name,d],i) =>
+    `<tr><td class="rank">${i+1}</td><td>${name}</td><td style="color:var(--text-dim);">${d.team}</td><td class="goals">${d.goals}</td><td class="shots">${d.shots}</td><td style="color:var(--text-dim);text-align:center;">${(d.distSum/d.goals).toFixed(1)}m</td></tr>`
+  ).join('') || '<tr><td colspan="6" style="color:#7e93b3;padding:8px 5px;">Sin goles en este filtro</td></tr>';
 
-  // body part chart
-  const bodyCounts = {};
-  data.forEach(s => { bodyCounts[s.body_part] = (bodyCounts[s.body_part]||0)+1; });
+  // body part chart: grouped (total shots + goals)
+  const bodyLabels = uniqueSorted(data.map(s=>s.body_part));
+  const bodyShotCounts = bodyLabels.map(b=>data.filter(s=>s.body_part===b).length);
+  const bodyGoalCounts = bodyLabels.map(b=>goals.filter(s=>s.body_part===b).length);
   if(bodyChart) bodyChart.destroy();
   bodyChart = new Chart(document.getElementById('bodyChart'), {
     type:'bar',
-    data:{ labels:Object.keys(bodyCounts), datasets:[{ data:Object.values(bodyCounts), backgroundColor:'#29b6f6', borderRadius:6 }]},
-    options:{ indexAxis:'y', responsive:true, plugins:{legend:{display:false}},
-      scales:{ x:{ ticks:{color:'#7e93b3'}, grid:{color:'rgba(255,255,255,0.06)'} }, y:{ ticks:{color:'#7e93b3'}, grid:{display:false} } } }
+    data:{ labels:bodyLabels, datasets:[
+      { label:'Tiros totales', data:bodyShotCounts, backgroundColor:'#29b6f6', borderRadius:5 },
+      { label:'Goles',         data:bodyGoalCounts, backgroundColor:'#3ddc84', borderRadius:5 }
+    ]},
+    options:{ indexAxis:'y', responsive:true,
+      plugins:{ legend:{ display:true, labels:{ color:'#7e93b3', font:{size:11}, boxWidth:12 } } },
+      scales:{
+        x:{ ticks:{color:'#7e93b3'}, grid:{color:'rgba(255,255,255,0.06)'} },
+        y:{ ticks:{color:'#7e93b3'}, grid:{display:false} }
+      }
+    }
   });
 
-  // distance histogram (goals)
+  // distance chart: total shots (not goals)
   const bins = [0,5,10,15,20,25,30,40,70];
   const binLabels = ['0-5','5-10','10-15','15-20','20-25','25-30','30-40','40+'];
   const counts = new Array(binLabels.length).fill(0);
-  goals.forEach(g => {
+  data.forEach(s => {
     for(let i=0;i<bins.length-1;i++){
-      if(g.dist_m>=bins[i] && g.dist_m<bins[i+1]){ counts[i]++; break; }
+      if(s.dist_m>=bins[i] && s.dist_m<bins[i+1]){ counts[i]++; break; }
     }
   });
   if(distChart) distChart.destroy();
@@ -385,7 +529,11 @@ function render(){
     type:'bar',
     data:{ labels:binLabels, datasets:[{ data:counts, backgroundColor:'#3ddc84', borderRadius:6 }]},
     options:{ responsive:true, plugins:{legend:{display:false}},
-      scales:{ y:{ ticks:{color:'#7e93b3'}, grid:{color:'rgba(255,255,255,0.06)'} }, x:{ ticks:{color:'#7e93b3'}, grid:{display:false} } } }
+      scales:{
+        y:{ ticks:{color:'#7e93b3'}, grid:{color:'rgba(255,255,255,0.06)'} },
+        x:{ ticks:{color:'#7e93b3'}, grid:{display:false} }
+      }
+    }
   });
 }
 
