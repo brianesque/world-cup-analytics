@@ -183,7 +183,7 @@
             </div>
           </div>
           <div class="pitch-wrap">
-            <svg id="pitchSvg" viewBox="0 0 640 520"></svg>
+            <svg id="pitchSvg" viewBox="0 0 640 600"></svg>
           </div>
           <div class="legend" id="dotsLegend">
             <span><span class="dotleg" style="background:#3ddc84;"></span>Gol</span>
@@ -289,14 +289,28 @@ function toSvgY(x){ return SVG_H - (x - X_MIN) * scaleX; }
 
 function pitchLines(){
   const lc = 'rgba(255,255,255,0.18)';
+  const STATS_Y = SVG_H;
   return [
     `<rect x="0" y="0" width="${SVG_W}" height="${SVG_H}" fill="none" stroke="${lc}" stroke-width="2"/>`,
     `<line x1="0" y1="${toSvgY(60)}" x2="${SVG_W}" y2="${toSvgY(60)}" stroke="${lc}" stroke-width="2"/>`,
-    `<rect x="${toSvgX(18)}" y="${toSvgY(102)}" width="${toSvgX(62)-toSvgX(18)}" height="${toSvgY(102)-toSvgY(120)}" fill="none" stroke="${lc}" stroke-width="2"/>`,
-    `<rect x="${toSvgX(30)}" y="${toSvgY(114)}" width="${toSvgX(50)-toSvgX(30)}" height="${toSvgY(114)-toSvgY(120)}" fill="none" stroke="${lc}" stroke-width="2"/>`,
+    `<rect x="${toSvgX(18)}" y="${toSvgY(120)}" width="${toSvgX(62)-toSvgX(18)}" height="${toSvgY(102)-toSvgY(120)}" fill="none" stroke="${lc}" stroke-width="2"/>`,
+    `<rect x="${toSvgX(30)}" y="${toSvgY(120)}" width="${toSvgX(50)-toSvgX(30)}" height="${toSvgY(114)-toSvgY(120)}" fill="none" stroke="${lc}" stroke-width="2"/>`,
     `<line x1="${toSvgX(36)}" y1="${toSvgY(120)}" x2="${toSvgX(44)}" y2="${toSvgY(120)}" stroke="#3ddc84" stroke-width="5"/>`,
     `<circle cx="${toSvgX(40)}" cy="${toSvgY(108)}" r="2.5" fill="${lc}"/>`,
-    `<path d="M ${toSvgX(26)} ${toSvgY(102)} A 60 60 0 0 1 ${toSvgX(54)} ${toSvgY(102)}" fill="none" stroke="${lc}" stroke-width="2"/>`,
+    `<path d="M ${toSvgX(32)} ${toSvgY(102)} A ${10*scaleY} ${10*scaleX} 0 0 0 ${toSvgX(48)} ${toSvgY(102)}" fill="none" stroke="${lc}" stroke-width="2"/>`,
+    `<ellipse cx="${toSvgX(40)}" cy="${toSvgY(60)}" rx="${10*scaleY}" ry="${10*scaleX}" fill="none" stroke="${lc}" stroke-width="2"/>`,
+    `<rect x="0" y="${STATS_Y}" width="${SVG_W}" height="80" fill="#040d08"/>`,
+    `<line x1="160" y1="${STATS_Y+8}" x2="160" y2="${STATS_Y+68}" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>`,
+    `<line x1="320" y1="${STATS_Y+8}" x2="320" y2="${STATS_Y+68}" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>`,
+    `<line x1="480" y1="${STATS_Y+8}" x2="480" y2="${STATS_Y+68}" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>`,
+    `<text id="pkpiTiros" x="80" y="${STATS_Y+34}" text-anchor="middle" fill="#eaf2fb" font-size="24" font-weight="800" font-family="-apple-system,sans-serif"> </text>`,
+    `<text x="80" y="${STATS_Y+53}" text-anchor="middle" fill="#7e93b3" font-size="11" font-family="-apple-system,sans-serif">TIROS</text>`,
+    `<text id="pkpiXg" x="240" y="${STATS_Y+34}" text-anchor="middle" fill="#29b6f6" font-size="24" font-weight="800" font-family="-apple-system,sans-serif"> </text>`,
+    `<text x="240" y="${STATS_Y+53}" text-anchor="middle" fill="#7e93b3" font-size="11" font-family="-apple-system,sans-serif">xG TOTAL</text>`,
+    `<text id="pkpiXgPer" x="400" y="${STATS_Y+34}" text-anchor="middle" fill="#eaf2fb" font-size="24" font-weight="800" font-family="-apple-system,sans-serif"> </text>`,
+    `<text x="400" y="${STATS_Y+53}" text-anchor="middle" fill="#7e93b3" font-size="11" font-family="-apple-system,sans-serif">xG / TIRO</text>`,
+    `<text id="pkpiDist" x="560" y="${STATS_Y+34}" text-anchor="middle" fill="#eaf2fb" font-size="24" font-weight="800" font-family="-apple-system,sans-serif"> </text>`,
+    `<text x="560" y="${STATS_Y+53}" text-anchor="middle" fill="#7e93b3" font-size="11" font-family="-apple-system,sans-serif">DIST. MEDIA</text>`,
   ].join('');
 }
 
@@ -474,6 +488,13 @@ function render(){
       c.addEventListener('mouseleave', ()=>tooltip.style.display='none');
     });
   }
+
+  // pitch KPI strip (inside SVG)
+  const xgTotal = data.reduce((s,d) => s + (d.xg||0), 0);
+  document.getElementById('pkpiTiros').textContent = data.length.toLocaleString('en-US');
+  document.getElementById('pkpiXg').textContent = xgTotal.toFixed(2);
+  document.getElementById('pkpiXgPer').textContent = data.length ? (xgTotal/data.length).toFixed(3) : '0.000';
+  document.getElementById('pkpiDist').textContent = (goals.length ? median(goals.map(g=>g.dist_m)).toFixed(1) : '0') + ' m';
 
   // KPIs
   document.getElementById('kpiShots').textContent = data.length.toLocaleString('en-US');
