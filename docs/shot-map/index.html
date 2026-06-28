@@ -50,7 +50,7 @@
 
   .main-layout{ display:grid; grid-template-columns:1fr 216px; gap:14px; align-items:start; }
   .content{ display:flex; flex-direction:column; gap:14px; }
-  .top-row{ display:grid; grid-template-columns:1fr 290px; gap:14px; }
+  .top-row{ display:grid; grid-template-columns:1fr 370px; gap:14px; }
   .bottom-row{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
 
   .card{
@@ -510,28 +510,36 @@ const FLAG_EMOJI = {
 // ---- pre-compute career WC stats per player (all editions, unfiltered) ----
 const PLAYER_CAREER = {};
 SHOTS.forEach(s => {
-  if(!PLAYER_CAREER[s.player]) PLAYER_CAREER[s.player]={team:s.team,shots:0,goals:0,xg:0,ed:{}};
+  if(!PLAYER_CAREER[s.player]) PLAYER_CAREER[s.player]={team:s.team,ed:{}};
   const p = PLAYER_CAREER[s.player];
-  p.shots++; p.xg+=(s.xg||0);
-  if(s.is_goal) p.goals++;
   const yr = String(s.edition);
-  if(!p.ed[yr]) p.ed[yr]={shots:0,goals:0,xg:0};
-  p.ed[yr].shots++; p.ed[yr].xg+=(s.xg||0);
-  if(s.is_goal) p.ed[yr].goals++;
+  if(!p.ed[yr]) p.ed[yr]={shots:0,goals:0,xg:0,goalDists:[],goalsOutBox:0};
+  const e = p.ed[yr];
+  e.shots++; e.xg+=(s.xg||0);
+  if(s.is_goal){ e.goals++; e.goalDists.push(s.dist_m); if(!s.in_box) e.goalsOutBox++; }
 });
 
 function showPlayerTooltip(event, name){
   const p = PLAYER_CAREER[name];
   if(!p){ tooltip.style.display='none'; return; }
   const flag = FLAG_EMOJI[p.team]||'';
+  const yrs = ['2018','2022'].filter(yr => p.ed[yr]);
+  const cell = (v, color='') => `<td style="text-align:right;padding:2px 6px;${color?'color:'+color:''}">${v}</td>`;
+  const label = (v) => `<td style="color:#7e93b3;padding:2px 4px;font-size:10px;">${v}</td>`;
   let rows = '';
-  ['2018','2022'].forEach(yr => {
-    if(p.ed[yr]){
-      const e = p.ed[yr];
-      rows += `${yr}: <b style="color:#3ddc84">${e.goals}</b> goles · ${e.shots} tiros · xG <b style="color:#29b6f6">${e.xg.toFixed(2)}</b><br>`;
-    }
+  yrs.forEach(yr => {
+    const e = p.ed[yr];
+    const med = e.goalDists.length ? median(e.goalDists).toFixed(1)+' m' : '—';
+    const xgPerShot = e.shots ? (e.xg/e.shots).toFixed(3) : '—';
+    rows += `<tr><td colspan="2" style="color:#7e93b3;font-size:10px;padding-top:5px;border-top:1px solid rgba(79,195,247,0.15);">${yr}</td></tr>`;
+    rows += `<tr>${label('Tiros')}${cell(e.shots)}</tr>`;
+    rows += `<tr>${label('Goles')}${cell(e.goals,'#3ddc84')}</tr>`;
+    rows += `<tr>${label('Dist. media al gol')}${cell(med)}</tr>`;
+    rows += `<tr>${label('Goles fuera del área')}${cell(e.goalsOutBox)}</tr>`;
+    rows += `<tr>${label('xG total')}${cell(e.xg.toFixed(2),'#29b6f6')}</tr>`;
+    rows += `<tr>${label('xG / tiro')}${cell(xgPerShot,'#29b6f6')}</tr>`;
   });
-  tooltip.innerHTML = `<b style="color:#00e5ff">${name}</b><br>${flag} ${p.team}<hr style="border-color:rgba(79,195,247,0.2);margin:5px 0">${rows}<span style="color:#29b6f6">Total: ${p.goals} goles · ${p.xg.toFixed(2)} xG</span>`;
+  tooltip.innerHTML = `<div style="font-size:12px;min-width:200px;"><b style="color:#00e5ff;font-size:13px;">${name}</b><br><span style="color:#7e93b3">${flag} ${p.team}</span><table style="width:100%;border-collapse:collapse;margin-top:4px;">${rows}</table></div>`;
   tooltip.style.display='block';
   tooltip.style.left=(event.clientX+16)+'px';
   tooltip.style.top=(event.clientY+10)+'px';
@@ -591,7 +599,7 @@ function render(){
   document.getElementById('topScorersBody').innerHTML = topList.map(([name,d],i) =>
     `<tr style="cursor:pointer;" onmouseenter="showPlayerTooltip(event,'${name.replace(/'/g,"\'")}')" onmouseleave="tooltip.style.display='none'">
       <td class="rank">${i+1}</td>
-      <td>${shortName(name)}</td>
+      <td style="font-size:11px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${name}</td>
       <td style="text-align:center;font-size:15px;">${FLAG_EMOJI[d.team]||'🏳'}</td>
       <td class="goals">${d.goals}</td>
       <td style="color:#29b6f6;text-align:center;">${d.xg.toFixed(2)}</td>
