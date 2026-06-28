@@ -208,8 +208,8 @@
           <table class="topscorers">
             <thead>
               <tr>
-                <th class="rank">#</th><th>Jugador</th><th>País</th>
-                <th style="text-align:center;">G</th><th style="text-align:center;">Tiros</th><th style="text-align:center;">Dist.</th>
+                <th class="rank">#</th><th>Jugador</th><th style="text-align:center;">🏴</th>
+                <th style="text-align:center;">G</th><th style="text-align:center;">xG</th>
               </tr>
             </thead>
             <tbody id="topScorersBody"></tbody>
@@ -461,6 +461,82 @@ function median(arr){
 }
 
 // ---- main render ----
+// ---- shortName: last name extraction ----
+const SHORT_NAME_OV = {
+  'Lionel Andrés Messi Cuccittini': 'Messi',
+  'Cristiano Ronaldo dos Santos Aveiro': 'Ronaldo',
+  'Kylian Mbappé Lottin': 'Mbappé',
+  'Neymar da Silva Santos Júnior': 'Neymar',
+  'Ángel Fabián Di María Hernández': 'Di María',
+  'Romelu Menama Lukaku Bolingoli': 'Lukaku',
+  'Denis Alekseyevich Cheryshev': 'Cheryshev',
+  'Harry Edward Kane': 'Kane',
+  'Marcus Rashford': 'Rashford',
+  'Olivier Jonathan Giroud': 'Giroud',
+  'Antoine Griezmann': 'Griezmann',
+  'Ivan Perišić': 'Perišić',
+  'Luka Modrić': 'Modrić',
+  'Cody Mathès Gakpo': 'Gakpo',
+  'Richarlison de Andrade': 'Richarlison',
+  'Julián Álvarez': 'Álvarez',
+  'Vincent Aboubakar': 'Aboubakar',
+  'Enner Remberto Valencia Lastra': 'Valencia',
+  'Paulo Henrique Sampaio Filho': 'Philippe Coutinho',
+  'Gabriel Fernando de Abreu Vieira': 'Gabigol',
+};
+const COMPOUND_PFXS = new Set(['di','de','del','della','van','von','da','do','dos','das','bin','al','el','le','la','du','den','der','af','mc']);
+function shortName(name){
+  if(SHORT_NAME_OV[name]) return SHORT_NAME_OV[name];
+  const parts = name.trim().split(/\s+/);
+  if(parts.length <= 2) return parts[parts.length-1];
+  const last2 = parts[parts.length-2].toLowerCase();
+  if(COMPOUND_PFXS.has(last2)) return parts.slice(-2).join(' ');
+  return parts[parts.length-1];
+}
+
+// ---- country flag emojis ----
+const FLAG_EMOJI = {
+  'Argentina':'🇦🇷','France':'🇫🇷','Brazil':'🇧🇷','Germany':'🇩🇪','Spain':'🇪🇸',
+  'England':'🏴󠁧󠁢󠁥󠁮󠁧󠁿','Portugal':'🇵🇹','Croatia':'🇭🇷','Uruguay':'🇺🇾','Belgium':'🇧🇪',
+  'Russia':'🇷🇺','Denmark':'🇩🇰','Sweden':'🇸🇪','Switzerland':'🇨🇭','Mexico':'🇲🇽',
+  'Colombia':'🇨🇴','Japan':'🇯🇵','South Korea':'🇰🇷','Senegal':'🇸🇳','Morocco':'🇲🇦',
+  'Tunisia':'🇹🇳','Nigeria':'🇳🇬','Egypt':'🇪🇬','Australia':'🇦🇺','Saudi Arabia':'🇸🇦',
+  'Iran':'🇮🇷','Costa Rica':'🇨🇷','Panama':'🇵🇦','Peru':'🇵🇪','Poland':'🇵🇱',
+  'Iceland':'🇮🇸','Serbia':'🇷🇸','Ecuador':'🇪🇨','Ghana':'🇬🇭','Cameroon':'🇨🇲',
+  'Netherlands':'🇳🇱','United States':'🇺🇸','Canada':'🇨🇦','Wales':'🏴󠁧󠁢󠁷󠁬󠁳󠁿','Qatar':'🇶🇦',
+  'Slovakia':'🇸🇰','Austria':'🇦🇹','Hungary':'🇭🇺','Czech Republic':'🇨🇿',
+};
+
+// ---- pre-compute career WC stats per player (all editions, unfiltered) ----
+const PLAYER_CAREER = {};
+SHOTS.forEach(s => {
+  if(!PLAYER_CAREER[s.player]) PLAYER_CAREER[s.player]={team:s.team,shots:0,goals:0,xg:0,ed:{}};
+  const p = PLAYER_CAREER[s.player];
+  p.shots++; p.xg+=(s.xg||0);
+  if(s.is_goal) p.goals++;
+  const yr = String(s.edition);
+  if(!p.ed[yr]) p.ed[yr]={shots:0,goals:0,xg:0};
+  p.ed[yr].shots++; p.ed[yr].xg+=(s.xg||0);
+  if(s.is_goal) p.ed[yr].goals++;
+});
+
+function showPlayerTooltip(event, name){
+  const p = PLAYER_CAREER[name];
+  if(!p){ tooltip.style.display='none'; return; }
+  const flag = FLAG_EMOJI[p.team]||'';
+  let rows = '';
+  ['2018','2022'].forEach(yr => {
+    if(p.ed[yr]){
+      const e = p.ed[yr];
+      rows += `${yr}: <b style="color:#3ddc84">${e.goals}</b> goles · ${e.shots} tiros · xG <b style="color:#29b6f6">${e.xg.toFixed(2)}</b><br>`;
+    }
+  });
+  tooltip.innerHTML = `<b style="color:#00e5ff">${name}</b><br>${flag} ${p.team}<hr style="border-color:rgba(79,195,247,0.2);margin:5px 0">${rows}<span style="color:#29b6f6">Total: ${p.goals} goles · ${p.xg.toFixed(2)} xG</span>`;
+  tooltip.style.display='block';
+  tooltip.style.left=(event.clientX+16)+'px';
+  tooltip.style.top=(event.clientY+10)+'px';
+}
+
 function render(){
   const data = filterShots();
   const goals = data.filter(s => s.is_goal);
@@ -504,17 +580,23 @@ function render(){
   document.getElementById('kpiOutbox').textContent = (goals.length ? Math.round(goals.filter(g=>!g.in_box).length/goals.length*100) : 0)+'%';
   document.getElementById('kpiSixyard').textContent = goals.filter(g=>g.six_yard).length;
 
-  // top scorers (10) with total shots per player
+  // top scorers (10)
   const byPlayer = {};
   goals.forEach(g => {
-    if(!byPlayer[g.player]) byPlayer[g.player]={team:g.team,goals:0,distSum:0,shots:0};
-    byPlayer[g.player].goals++; byPlayer[g.player].distSum+=g.dist_m;
+    if(!byPlayer[g.player]) byPlayer[g.player]={team:g.team,goals:0,xg:0};
+    byPlayer[g.player].goals++;
   });
-  data.forEach(s => { if(byPlayer[s.player]) byPlayer[s.player].shots++; });
+  data.forEach(s => { if(byPlayer[s.player]) byPlayer[s.player].xg+=(s.xg||0); });
   const topList = Object.entries(byPlayer).sort((a,b)=>b[1].goals-a[1].goals).slice(0,10);
   document.getElementById('topScorersBody').innerHTML = topList.map(([name,d],i) =>
-    `<tr><td class="rank">${i+1}</td><td>${name}</td><td style="color:var(--text-dim);">${d.team}</td><td class="goals">${d.goals}</td><td class="shots">${d.shots}</td><td style="color:var(--text-dim);text-align:center;">${(d.distSum/d.goals).toFixed(1)}m</td></tr>`
-  ).join('') || '<tr><td colspan="6" style="color:#7e93b3;padding:8px 5px;">Sin goles en este filtro</td></tr>';
+    `<tr style="cursor:pointer;" onmouseenter="showPlayerTooltip(event,'${name.replace(/'/g,"\'")}')" onmouseleave="tooltip.style.display='none'">
+      <td class="rank">${i+1}</td>
+      <td>${shortName(name)}</td>
+      <td style="text-align:center;font-size:15px;">${FLAG_EMOJI[d.team]||'🏳'}</td>
+      <td class="goals">${d.goals}</td>
+      <td style="color:#29b6f6;text-align:center;">${d.xg.toFixed(2)}</td>
+    </tr>`
+  ).join('') || '<tr><td colspan="5" style="color:#7e93b3;padding:8px 5px;">Sin goles en este filtro</td></tr>';
 
   // body part chart: grouped (total shots + goals)
   const bodyLabels = uniqueSorted(data.map(s=>s.body_part));
