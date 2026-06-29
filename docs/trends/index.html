@@ -63,11 +63,11 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .team-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(61,220,132,.12);border:1px solid rgba(61,220,132,.3);border-radius:20px;padding:2px 8px;font-size:10px;color:var(--accent)}
 
 /* KPI STRIP */
-.kpi-strip{display:grid;grid-template-columns:repeat(6,1fr);gap:7px}
-.kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 7px;text-align:center;position:relative}
-.kpi-val{font-size:17px;font-weight:800;line-height:1.1}
-.kpi-lbl{font-size:9px;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:.4px;display:flex;align-items:center;justify-content:center;gap:3px}
-.kpi-delta{font-size:9px;margin-top:3px;font-weight:600}
+.kpi-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:13px 10px;text-align:center;position:relative}
+.kpi-val{font-size:23px;font-weight:800;line-height:1.1}
+.kpi-lbl{font-size:11px;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.4px;display:flex;align-items:center;justify-content:center;gap:3px}
+.kpi-delta{font-size:11px;margin-top:4px;font-weight:600}
 .kpi-delta.up{color:#3ddc84}.kpi-delta.down{color:#ff3a5e}.kpi-delta.neu{color:var(--muted)}
 
 /* INFO ICON */
@@ -84,8 +84,8 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .chart-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px}
 .chart-title{font-size:11px;font-weight:600;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;gap:5px}
-.chart-wrap{position:relative;height:190px}
-.chart-card.tall .chart-wrap{height:220px}
+.chart-wrap{position:relative;height:248px}
+.chart-card.tall .chart-wrap{height:286px}
 
 /* ZONE LEGEND */
 .zone-legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px}
@@ -319,6 +319,20 @@ function init() {
   buildRightPanel();
 }
 
+// ── LEAGUE CARD KPI (siempre usa datos de liga, ignora selTeam) ───────────────
+function leagueKpi(leagueKey) {
+  if (!DATA) return null;
+  const l = DATA.leagues[leagueKey];
+  if (!l?.seasons) return null;
+  const range = getSelRange();
+  const rows  = range.map(s => l.seasons[s]).filter(Boolean);
+  if (!rows.length) return null;
+  const shots = rows.reduce((a, d) => a + d.shots, 0);
+  if (!shots) return null;
+  const xg = rows.reduce((a, d) => a + d.xg_per_shot * d.shots, 0) / shots;
+  return { xg_per_shot: xg };
+}
+
 // ── LEAGUE LIST ───────────────────────────────────────────────────────────────
 function buildLeagueList(data) {
   const container = document.getElementById('league-list');
@@ -329,7 +343,7 @@ function buildLeagueList(data) {
     ['Serie_A',{name:'Serie A',country:'Italia',flag:'🇮🇹',color:'#1d9e54',seasons:{}}],
   ];
   container.innerHTML = leagues.map(([key, l]) => {
-    const agg = data ? aggregateRange(key, getSelRange()) : null;
+    const agg = data ? leagueKpi(key) : null;
     const kpi = agg ? `${agg.xg_per_shot.toFixed(3)} xG/tiro` : '—';
     return `<div class="league-card${key===selLeague?' active':''}" onclick="selectLeague('${key}')" id="lcard-${key}">
       <div class="league-dot" style="background:${l.color}"></div>
@@ -789,7 +803,7 @@ function renderTrendCharts() {
         plugins:{
           legend:{ display:datasets.length>1, position:'bottom', labels:{boxWidth:10,padding:6,font:{size:9}} },
           tooltip:{
-            backgroundColor:'#0f2218',borderColor:'rgba(255,255,255,0.12)',borderWidth:1,
+            backgroundColor:'rgba(4,20,10,0.97)',borderColor:'rgba(61,220,132,.35)',borderWidth:1,titleColor:'#eaf2fb',bodyColor:'#eaf2fb',
             callbacks:{
               title: ctx => {
                 const i = ctx[0].dataIndex;
@@ -867,7 +881,7 @@ function renderSeasonCharts() {
         plugins:{
           legend:{display:false},
           tooltip:{
-            backgroundColor:'#0f2218',borderColor:'rgba(255,255,255,0.12)',borderWidth:1,
+            backgroundColor:'rgba(4,20,10,0.97)',borderColor:'rgba(61,220,132,.35)',borderWidth:1,titleColor:'#eaf2fb',bodyColor:'#eaf2fb',
             callbacks:{
               label: ctx => {
                 const total = (s?.dist_bins||[]).reduce((a,b)=>a+b,0);
@@ -924,7 +938,7 @@ function renderSeasonCharts() {
               }
             },
             tooltip:{
-              backgroundColor:'#0f2218',borderColor:'rgba(255,255,255,0.12)',borderWidth:1,
+              backgroundColor:'rgba(4,20,10,0.97)',borderColor:'rgba(61,220,132,.35)',borderWidth:1,titleColor:'#eaf2fb',bodyColor:'#eaf2fb',
               callbacks:{label:ctx=>{
                 const total=ctx.dataset.data.reduce((a,b)=>a+b,0);
                 return ` ${ctx.parsed.toLocaleString('es')} disparos (${(ctx.parsed/total*100).toFixed(1)}%)`;
