@@ -38,24 +38,44 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .right-panel{overflow-y:auto;display:flex;flex-direction:column;gap:0}
 
 /* STICKY CONTROLS */
-.sticky-controls{position:sticky;top:0;z-index:10;background:var(--bg);border-bottom:1px solid var(--border);padding:14px 24px 12px;display:flex;flex-direction:column;gap:12px}
+.sticky-controls{position:sticky;top:0;z-index:10;background:var(--bg);border-bottom:1px solid var(--border);padding:14px 24px 12px;display:flex;flex-direction:column;gap:10px}
 
-/* SEASON SLIDER */
-.slider-row{display:flex;align-items:center;gap:16px}
-.slider-label{font-size:12px;color:var(--muted);font-weight:500;white-space:nowrap}
-.season-display{font-size:18px;font-weight:800;color:var(--accent);white-space:nowrap;min-width:90px}
-.slider-wrap{flex:1}
-input[type=range]{width:100%;accent-color:var(--accent);cursor:pointer;height:4px}
-.season-ticks{display:flex;justify-content:space-between;margin-top:4px}
+/* DUAL RANGE SLIDER */
+.slider-row{display:flex;align-items:center;gap:14px}
+.ctrl-label{font-size:10px;color:var(--muted);font-weight:600;white-space:nowrap;text-transform:uppercase;letter-spacing:.5px;min-width:54px}
+.slider-wrap{flex:1;display:flex;flex-direction:column;gap:4px}
+.season-display{font-size:13px;font-weight:800;color:var(--accent);white-space:nowrap;text-align:right;min-width:190px}
+.dual-range{position:relative;height:24px;display:flex;align-items:center}
+.range-track{position:absolute;left:0;right:0;height:4px;background:var(--surface2);border-radius:2px;pointer-events:none}
+.range-fill{position:absolute;height:100%;background:var(--accent);border-radius:2px;opacity:.75}
+.range-input{position:absolute;width:100%;height:4px;background:transparent;-webkit-appearance:none;appearance:none;pointer-events:none;outline:none;margin:0}
+.range-input::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);border:2px solid var(--bg);cursor:pointer;pointer-events:all;box-shadow:0 1px 6px rgba(0,0,0,.6);transition:transform .1s}
+.range-input::-webkit-slider-thumb:hover{transform:scale(1.25)}
+.range-input::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--accent);border:2px solid var(--bg);cursor:pointer;pointer-events:all;box-shadow:0 1px 6px rgba(0,0,0,.6)}
+.season-ticks{display:flex;justify-content:space-between}
 .season-tick{font-size:9px;color:var(--muted)}
 
+/* TEAM FILTER */
+.team-row{display:flex;align-items:center;gap:14px}
+.team-select{flex:1;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:5px 10px;border-radius:6px;font-size:12px;cursor:pointer;outline:none;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%237e93b3'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+.team-select:focus{border-color:var(--accent)}
+.team-select option{background:#0b1a12}
+.team-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(61,220,132,.12);border:1px solid rgba(61,220,132,.3);border-radius:20px;padding:2px 8px;font-size:10px;color:var(--accent)}
+
 /* KPI STRIP */
-.kpi-strip{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
-.kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 8px;text-align:center;position:relative}
-.kpi-val{font-size:18px;font-weight:800;line-height:1.1}
-.kpi-lbl{font-size:9px;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:.4px}
+.kpi-strip{display:grid;grid-template-columns:repeat(6,1fr);gap:7px}
+.kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 7px;text-align:center;position:relative}
+.kpi-val{font-size:17px;font-weight:800;line-height:1.1}
+.kpi-lbl{font-size:9px;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:.4px;display:flex;align-items:center;justify-content:center;gap:3px}
 .kpi-delta{font-size:9px;margin-top:3px;font-weight:600}
 .kpi-delta.up{color:#3ddc84}.kpi-delta.down{color:#ff3a5e}.kpi-delta.neu{color:var(--muted)}
+
+/* INFO ICON */
+.info-icon{display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);color:var(--muted);font-size:8px;cursor:help;font-style:normal;flex-shrink:0;line-height:1}
+.info-icon:hover{border-color:var(--accent);color:var(--accent)}
+
+/* GLOBAL TOOLTIP */
+#tip{display:none;position:fixed;z-index:9999;background:#0f2218;border:1px solid rgba(61,220,132,.25);border-radius:8px;padding:10px 14px;font-size:11px;color:var(--text);line-height:1.6;max-width:280px;pointer-events:none;box-shadow:0 4px 20px rgba(0,0,0,.5)}
 
 /* SCROLLABLE CONTENT */
 .scroll-content{padding:16px 24px;display:flex;flex-direction:column;gap:16px}
@@ -63,9 +83,14 @@ input[type=range]{width:100%;accent-color:var(--accent);cursor:pointer;height:4p
 /* CHARTS */
 .charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .chart-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px}
-.chart-title{font-size:11px;font-weight:600;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px}
+.chart-title{font-size:11px;font-weight:600;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;gap:5px}
 .chart-wrap{position:relative;height:190px}
-.chart-card.tall .chart-wrap{height:230px}
+.chart-card.tall .chart-wrap{height:220px}
+
+/* ZONE LEGEND */
+.zone-legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px}
+.zone-item{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted)}
+.zone-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
 
 /* COMPARE BAR */
 .compare-section{display:flex;flex-direction:column;gap:6px}
@@ -73,6 +98,13 @@ input[type=range]{width:100%;accent-color:var(--accent);cursor:pointer;height:4p
 .compare-bar{display:flex;gap:6px;flex-wrap:wrap}
 .compare-btn{padding:3px 10px;border-radius:20px;border:1px solid var(--border);background:none;color:var(--muted);font-size:11px;cursor:pointer;transition:all .15s}
 .compare-btn.active{color:#000;font-weight:700}
+
+/* FOOTER */
+.dash-footer{padding:20px 24px 28px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:10px}
+.footer-source{font-size:11px;color:var(--muted);line-height:1.7}
+.footer-source a{color:var(--accent);text-decoration:none}.footer-source a:hover{text-decoration:underline}
+.footer-notice{display:flex;gap:8px;background:rgba(232,180,0,.06);border:1px solid rgba(232,180,0,.18);border-radius:8px;padding:10px 14px;font-size:11px;color:#e8b400;line-height:1.6}
+.footer-notice .icon{font-size:16px;flex-shrink:0;margin-top:1px}
 
 /* NO DATA */
 .no-data{display:flex;flex-direction:column;align-items:center;justify-content:center;height:300px;color:var(--muted);gap:8px;padding:24px}
@@ -84,6 +116,9 @@ input[type=range]{width:100%;accent-color:var(--accent);cursor:pointer;height:4p
 </style>
 </head>
 <body>
+
+<!-- GLOBAL TOOLTIP -->
+<div id="tip"></div>
 
 <div class="topbar">
   <h1>⚽ Liga Trends</h1>
@@ -117,16 +152,50 @@ input[type=range]{width:100%;accent-color:var(--accent);cursor:pointer;height:4p
 // ── GLOBALS ───────────────────────────────────────────────────────────────────
 let DATA      = null;
 let selLeague = 'EPL';
-let selSeason = '2023';
+let selFrom   = '2014';
+let selTo     = '2023';
+let selTeam   = '';     // '' = all teams
 
 const LEAGUE_COLORS = {
   EPL:'#00a8e8', La_liga:'#ff6900', Bundesliga:'#e8c320',
   Serie_A:'#1d9e54', Ligue_1:'#bf5af2', RFPL:'#ff3a5e'
 };
 const CHARTS = {};
-
-// Which leagues are toggled ON in the comparison
 let compareLeagues = new Set(Object.keys(LEAGUE_COLORS));
+
+// ── ZONE COLORS for distance histogram ───────────────────────────────────────
+// Bins: ["0-5","5-10","10-15","15-20","20-25","25-30","30-40","40+"]
+const ZONE_COLORS = [
+  '#e63946', // 0-5m  → área chica (red)
+  '#f4734f', // 5-10m → área chica
+  '#f4a261', // 10-15m → área penal
+  '#e9c46a', // 15-20m → área penal / borde
+  '#74b9ff', // 20-25m → fuera del área
+  '#5d8fbd', // 25-30m → fuera
+  '#4a70a8', // 30-40m → largo alcance
+  '#3a5a8c', // 40+m   → muy largo
+];
+const ZONE_DEFS = [
+  { label:'Área chica (0–10m)',    color:'#e63946', bins:[0,1] },
+  { label:'Área penal (10–20m)',   color:'#f4a261', bins:[2,3] },
+  { label:'Fuera del área (20m+)', color:'#74b9ff', bins:[4,5,6,7] },
+];
+
+// ── TOOLTIP DEFINITIONS ───────────────────────────────────────────────────────
+const TIPS = {
+  kpi_shots:    'Total de disparos registrados por Understat.\nIncluye goles, paradas del arquero, tiros desviados y bloqueados.',
+  kpi_goals:    'Goles marcados en el período seleccionado.\nEl delta compara la tasa de conversión (goles / tiros) con el punto de referencia.',
+  kpi_xg:       'Expected Goals por disparo.\nProbabilidad media de que un tiro resulte en gol según posición, ángulo, tipo de jugada y remate. Modelo de Understat.\nMayor xG/tiro = oportunidades de mayor calidad.',
+  kpi_box:      'Porcentaje de disparos desde dentro del área penal.\n(X > 0.843 en coordenadas Understat = últimos 16.5m del campo)\nMás % en área = ataque más penetrativo.',
+  kpi_dist:     'Mediana de la distancia al centro del arco (en metros).\nFórmula: √[(1−X)²×105² + (Y−0.5)²×68²]\nSe usa la mediana para minimizar el efecto de tiros atípicos muy lejanos.',
+  kpi_central:  'Centralidad lateral del disparo.\nFórmula: 1 − 2×|Y − 0.5|\n• 1 = disparo sobre el eje central del arco\n• 0 = desde la banda\nDisparos más centrales tienen mejor ángulo y mayor xG.',
+  chart_xg:     'Evolución de la calidad media de los disparos.\nUna tendencia al alza indica que los equipos están generando oportunidades más peligrosas — acercándose más o disparando con mejor ángulo.',
+  chart_dist:   'Evolución de la distancia típica al arco.\nUna tendencia bajista significa que los equipos están penetrando más el área y rematando desde posiciones más cercanas al gol.',
+  chart_box:    'Evolución del % de tiros realizados desde dentro del área penal.\nRefleja la capacidad ofensiva para romper líneas defensivas y crear oportunidades de alta calidad.',
+  chart_central:'Evolución de la centralidad de los disparos.\nValores más altos = los ataques terminan en posiciones más frontales al arco, con mejor ángulo y mayor probabilidad de conversión.',
+  chart_distrib:'Distribución de los disparos por distancia al arco.\nColores: rojo = área chica (0–10m), naranja = área penal (10–20m), azul = fuera del área (20m+).\nEn modo rango muestra datos agregados de todo el período.',
+  chart_sit:    'Distribución de disparos según el tipo de jugada que los originó.\nEn modo rango muestra datos agregados de todo el período seleccionado.',
+};
 
 // ── CHART DEFAULTS ────────────────────────────────────────────────────────────
 Chart.defaults.color        = '#7e93b3';
@@ -138,6 +207,87 @@ Chart.defaults.font.size    = 11;
 function hexRgba(hex, a) {
   const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
   return `rgba(${r},${g},${b},${a})`;
+}
+
+function infoIcon(tipKey) {
+  return `<i class="info-icon" onmouseenter="showTip('${tipKey}',event)" onmouseleave="hideTip()">ℹ</i>`;
+}
+
+function getSelRange() {
+  const s = DATA.all_seasons;
+  return s.slice(s.indexOf(selFrom), s.indexOf(selTo)+1);
+}
+function isRangeMode()  { return selFrom !== selTo; }
+function rangeLabel()   {
+  return isRangeMode()
+    ? `${selFrom}/${+selFrom+1} → ${selTo}/${+selTo+1}`
+    : `${selFrom}/${+selFrom+1}`;
+}
+
+// ── TOOLTIP ENGINE ────────────────────────────────────────────────────────────
+function showTip(key, e) {
+  const el = document.getElementById('tip');
+  el.textContent = TIPS[key] || key;
+  el.style.display = 'block';
+  const x = Math.min(e.clientX + 12, window.innerWidth - 295);
+  const y = Math.max(e.clientY - 70, 8);
+  el.style.left = x + 'px';
+  el.style.top  = y + 'px';
+}
+function hideTip() { document.getElementById('tip').style.display = 'none'; }
+
+// ── AGGREGATION ───────────────────────────────────────────────────────────────
+const DIST_EDGES = [0, 5, 10, 15, 20, 25, 30, 40, 60, 100];
+
+function approxMedianFromBins(bins) {
+  const total = bins.reduce((a, b) => a + b, 0);
+  if (!total) return 0;
+  const half = total / 2;
+  let cum = 0;
+  for (let i = 0; i < bins.length; i++) {
+    cum += bins[i];
+    if (cum >= half) {
+      const prev  = cum - bins[i];
+      const frac  = bins[i] > 0 ? (half - prev) / bins[i] : 0;
+      return DIST_EDGES[i] + frac * ((DIST_EDGES[i+1]??DIST_EDGES[i]+20) - DIST_EDGES[i]);
+    }
+  }
+  return 0;
+}
+
+function getSeasonData(leagueKey, season) {
+  const s = DATA.leagues[leagueKey]?.seasons?.[season];
+  if (!s) return null;
+  return selTeam ? s.teams?.[selTeam] ?? null : s;
+}
+
+function aggregateRange(leagueKey, range) {
+  const rows = range.map(s => getSeasonData(leagueKey, s)).filter(Boolean);
+  if (!rows.length) return null;
+  if (rows.length === 1) return rows[0];
+
+  const shots   = rows.reduce((s, d) => s + d.shots, 0);
+  const goals   = rows.reduce((s, d) => s + d.goals, 0);
+  const xgTotal = rows.reduce((s, d) => s + (d.xg_total ?? d.xg_per_shot * d.shots), 0);
+  const avgDist = rows.reduce((s, d) => s + d.avg_dist * d.shots, 0) / shots;
+  const avgCent = rows.reduce((s, d) => s + d.avg_centrality * d.shots, 0) / shots;
+  const pctBox  = rows.reduce((s, d) => s + d.pct_in_box * d.shots, 0) / shots;
+  const distBins= (DATA.dist_labels||[]).map((_,i)=>rows.reduce((s,d)=>s+(d.dist_bins?.[i]||0),0));
+  const bySit   = {};
+  rows.forEach(d => Object.entries(d.by_situation||{}).forEach(([k,v])=>{ bySit[k]=(bySit[k]||0)+v; }));
+
+  return {
+    shots, goals,
+    xg_total:       xgTotal,
+    xg_per_shot:    xgTotal / shots,
+    conversion:     goals / shots,
+    pct_in_box:     pctBox,
+    avg_dist:       avgDist,
+    median_dist:    approxMedianFromBins(distBins),
+    avg_centrality: avgCent,
+    dist_bins:      distBins,
+    by_situation:   Object.fromEntries(Object.entries(bySit).sort((a,b)=>b[1]-a[1])),
+  };
 }
 
 // ── LOAD DATA ─────────────────────────────────────────────────────────────────
@@ -157,12 +307,13 @@ async function loadData() {
 }
 
 function init() {
-  // Pick most recent season with data
-  for (const s of [...DATA.all_seasons].reverse()) {
-    if (Object.values(DATA.leagues).some(l => l.seasons?.[s])) { selSeason = s; break; }
-  }
-  // Only keep leagues that have data in compareLeagues
-  compareLeagues = new Set(Object.keys(DATA.leagues).filter(k => DATA.leagues[k].seasons && Object.keys(DATA.leagues[k].seasons).length > 0));
+  const seasons = DATA.all_seasons;
+  selFrom = seasons[0];
+  for (const s of [...seasons].reverse())
+    if (Object.values(DATA.leagues).some(l=>l.seasons?.[s])) { selTo = s; break; }
+  compareLeagues = new Set(
+    Object.keys(DATA.leagues).filter(k=>DATA.leagues[k].seasons&&Object.keys(DATA.leagues[k].seasons).length>0)
+  );
   buildLeagueList(DATA);
   buildRightPanel();
 }
@@ -177,8 +328,8 @@ function buildLeagueList(data) {
     ['Serie_A',{name:'Serie A',country:'Italia',flag:'🇮🇹',color:'#1d9e54',seasons:{}}],
   ];
   container.innerHTML = leagues.map(([key, l]) => {
-    const s = l.seasons?.[selSeason];
-    const kpi = s ? `${s.xg_per_shot.toFixed(3)} xG/tiro` : '—';
+    const agg = data ? aggregateRange(key, getSelRange()) : null;
+    const kpi = agg ? `${agg.xg_per_shot.toFixed(3)} xG/tiro` : '—';
     return `<div class="league-card${key===selLeague?' active':''}" onclick="selectLeague('${key}')" id="lcard-${key}">
       <div class="league-dot" style="background:${l.color}"></div>
       <div class="league-info">
@@ -192,8 +343,10 @@ function buildLeagueList(data) {
 
 function selectLeague(key) {
   selLeague = key;
+  selTeam   = '';
   document.querySelectorAll('.league-card').forEach(c=>c.classList.remove('active'));
   document.getElementById(`lcard-${key}`)?.classList.add('active');
+  buildTeamDropdown();
   renderKPIs();
   renderSeasonCharts();
   renderTrendCharts();
@@ -202,30 +355,45 @@ function selectLeague(key) {
 // ── RIGHT PANEL ───────────────────────────────────────────────────────────────
 function buildRightPanel() {
   if (!DATA) return;
+  const seasons = DATA.all_seasons;
+  const max     = seasons.length - 1;
+  const fromIdx = seasons.indexOf(selFrom);
+  const toIdx   = seasons.indexOf(selTo);
+
   const panel = document.getElementById('right-panel');
   panel.innerHTML = `
-    <!-- STICKY: slider + KPIs -->
     <div class="sticky-controls">
+      <!-- Dual range slider -->
       <div class="slider-row">
-        <span class="slider-label">Temporada</span>
-        <span class="season-display" id="season-display">${selSeason}/${+selSeason+1}</span>
+        <span class="ctrl-label">Período</span>
         <div class="slider-wrap">
-          <input type="range" id="season-slider"
-            min="0" max="${DATA.all_seasons.length-1}"
-            value="${DATA.all_seasons.indexOf(selSeason)}"
-            oninput="onSlider(this.value)"/>
+          <div class="dual-range">
+            <div class="range-track"><div class="range-fill" id="range-fill"></div></div>
+            <input type="range" class="range-input" id="slider-from" min="0" max="${max}" value="${fromIdx}" oninput="onSliderFrom(this.value)"/>
+            <input type="range" class="range-input" id="slider-to"   min="0" max="${max}" value="${toIdx}"   oninput="onSliderTo(this.value)"/>
+          </div>
           <div class="season-ticks">
-            ${DATA.all_seasons.filter((_,i)=>i%2===0).map(s=>`<span class="season-tick">${s}</span>`).join('')}
+            ${seasons.filter((_,i)=>i%2===0).map(s=>`<span class="season-tick">${s}</span>`).join('')}
           </div>
         </div>
+        <span class="season-display" id="season-display"></span>
       </div>
+
+      <!-- Team filter -->
+      <div class="team-row">
+        <span class="ctrl-label">Equipo</span>
+        <select class="team-select" id="team-select" onchange="onTeamChange(this.value)">
+          <option value="">Todos los equipos</option>
+        </select>
+      </div>
+
+      <!-- KPI strip -->
       <div class="kpi-strip" id="kpi-strip"></div>
     </div>
 
-    <!-- SCROLLABLE CONTENT -->
     <div class="scroll-content">
-      <!-- Compare toggle -->
-      <div class="compare-section">
+      <!-- Compare toggle (hidden when team selected) -->
+      <div class="compare-section" id="compare-section">
         <div class="compare-label">Comparar ligas</div>
         <div class="compare-bar" id="compare-bar"></div>
       </div>
@@ -233,51 +401,128 @@ function buildRightPanel() {
       <!-- 4 trend line charts -->
       <div class="charts-grid">
         <div class="chart-card">
-          <div class="chart-title">xG por disparo</div>
+          <div class="chart-title">xG por disparo ${infoIcon('chart_xg')}</div>
           <div class="chart-wrap"><canvas id="chart-xg"></canvas></div>
         </div>
         <div class="chart-card">
-          <div class="chart-title">Distancia mediana al arco (m)</div>
+          <div class="chart-title">Distancia mediana al arco (m) ${infoIcon('chart_dist')}</div>
           <div class="chart-wrap"><canvas id="chart-dist"></canvas></div>
         </div>
         <div class="chart-card">
-          <div class="chart-title">% de disparos dentro del área</div>
+          <div class="chart-title">% disparos dentro del área ${infoIcon('chart_box')}</div>
           <div class="chart-wrap"><canvas id="chart-box"></canvas></div>
         </div>
         <div class="chart-card">
-          <div class="chart-title">Centralidad del disparo (0–1)</div>
+          <div class="chart-title">Centralidad del disparo (0–1) ${infoIcon('chart_central')}</div>
           <div class="chart-wrap"><canvas id="chart-central"></canvas></div>
         </div>
       </div>
 
-      <!-- Season-specific charts -->
+      <!-- Season/Range charts -->
       <div class="charts-grid">
         <div class="chart-card tall">
-          <div class="chart-title" id="title-distrib">Distribución de distancias — ${selSeason}/${+selSeason+1}</div>
+          <div class="chart-title" id="title-distrib"></div>
           <div class="chart-wrap"><canvas id="chart-distrib"></canvas></div>
+          <div class="zone-legend">
+            ${ZONE_DEFS.map(z=>`<div class="zone-item"><div class="zone-dot" style="background:${z.color}"></div>${z.label}</div>`).join('')}
+          </div>
         </div>
         <div class="chart-card tall">
-          <div class="chart-title" id="title-sit">Situación del disparo — ${selSeason}/${+selSeason+1}</div>
+          <div class="chart-title" id="title-sit"></div>
           <div class="chart-wrap"><canvas id="chart-sit"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="dash-footer">
+        <div class="footer-notice">
+          <span class="icon">⚠️</span>
+          <span><strong>Liga Rusa (RFPL) no incluida.</strong> Understat interrumpió la cobertura de la liga rusa a partir de la temporada 2022/23, consecuencia de las exclusiones deportivas internacionales tras la invasión de Ucrania (febrero 2022). Las temporadas 2014–2021 existen pero fueron excluidas del análisis para mantener consistencia con las 4 grandes ligas.</span>
+        </div>
+        <div class="footer-source">
+          Fuente de datos: <a href="https://understat.com" target="_blank">Understat.com</a> — shot-level data con Expected Goals para las principales ligas europeas desde 2014.<br>
+          Pipeline: <code style="font-size:10px;color:var(--accent)">scripts/download_understat.py</code> → <code style="font-size:10px;color:var(--accent)">scripts/build_league_trends.py</code> → <code style="font-size:10px;color:var(--accent)">docs/trends/data.json</code>
         </div>
       </div>
     </div>`;
 
+  buildTeamDropdown();
+  refreshSliderFill();
+  updateSeasonDisplay();
   renderCompareBar();
   renderKPIs();
   renderTrendCharts();
   renderSeasonCharts();
 }
 
-// ── SLIDER ────────────────────────────────────────────────────────────────────
-function onSlider(idx) {
-  selSeason = DATA.all_seasons[+idx];
-  document.getElementById('season-display').textContent = `${selSeason}/${+selSeason+1}`;
-  document.getElementById('title-distrib').textContent  = `Distribución de distancias — ${selSeason}/${+selSeason+1}`;
-  document.getElementById('title-sit').textContent       = `Situación del disparo — ${selSeason}/${+selSeason+1}`;
+// ── TEAM DROPDOWN ─────────────────────────────────────────────────────────────
+function buildTeamDropdown() {
+  const sel = document.getElementById('team-select');
+  if (!sel || !DATA) return;
+  const teams = DATA.leagues[selLeague]?.all_teams || [];
+  sel.innerHTML = `<option value="">Todos los equipos</option>` +
+    teams.map(t => `<option value="${t}"${t===selTeam?' selected':''}>${t}</option>`).join('');
+  // Show/hide compare when team selected
+  const cs = document.getElementById('compare-section');
+  if (cs) cs.style.display = selTeam ? 'none' : '';
+}
+
+function onTeamChange(val) {
+  selTeam = val;
+  buildTeamDropdown();
   buildLeagueList(DATA);
   renderKPIs();
-  renderTrendCharts();   // re-renders with updated season highlight
+  renderTrendCharts();
+  renderSeasonCharts();
+}
+
+// ── DUAL SLIDER ───────────────────────────────────────────────────────────────
+function refreshSliderFill() {
+  const fill = document.getElementById('range-fill');
+  if (!fill || !DATA) return;
+  const max = DATA.all_seasons.length - 1;
+  const fi  = DATA.all_seasons.indexOf(selFrom);
+  const ti  = DATA.all_seasons.indexOf(selTo);
+  fill.style.left  = (fi/max*100) + '%';
+  fill.style.width = ((ti-fi)/max*100) + '%';
+}
+
+function updateSeasonDisplay() {
+  const el = document.getElementById('season-display');
+  if (!el) return;
+  el.textContent = rangeLabel();
+  el.style.fontSize = isRangeMode() ? '12px' : '15px';
+}
+
+function updateRangeTitles() {
+  const lbl = rangeLabel();
+  const td = document.getElementById('title-distrib');
+  const ts = document.getElementById('title-sit');
+  if (td) td.innerHTML = `Distancia al arco — ${lbl} ${infoIcon('chart_distrib')}`;
+  if (ts) ts.innerHTML = `Situación del disparo — ${lbl} ${infoIcon('chart_sit')}`;
+}
+
+function onSliderFrom(val) {
+  const s = DATA.all_seasons;
+  selFrom = s[Math.min(+val, s.indexOf(selTo))];
+  document.getElementById('slider-from').value = s.indexOf(selFrom);
+  afterSliderChange();
+}
+
+function onSliderTo(val) {
+  const s = DATA.all_seasons;
+  selTo = s[Math.max(+val, s.indexOf(selFrom))];
+  document.getElementById('slider-to').value = s.indexOf(selTo);
+  afterSliderChange();
+}
+
+function afterSliderChange() {
+  refreshSliderFill();
+  updateSeasonDisplay();
+  updateRangeTitles();
+  buildLeagueList(DATA);
+  renderKPIs();
+  renderTrendCharts();
   renderSeasonCharts();
 }
 
@@ -306,61 +551,90 @@ function renderKPIs() {
   if (!DATA) return;
   const strip = document.getElementById('kpi-strip');
   if (!strip) return;
-  const l = DATA.leagues[selLeague];
-  const s = l?.seasons?.[selSeason];
-  const yr = +selSeason;
 
-  // Find comparison baselines (5y and 10y ago)
-  const s5  = l?.seasons?.[String(yr-5)];
-  const s10 = l?.seasons?.[String(yr-10)];
-  const base = s5 || s10;
-  const baseLabel = s5 ? '5a' : (s10 ? '10a' : null);
+  const range = getSelRange();
+  const s     = aggregateRange(selLeague, range);
+  const l     = DATA.leagues[selLeague];
 
-  function delta(curr, prev, higherIsBetter=true) {
-    if (!prev || curr == null) return '';
-    const diff = curr - prev;
-    const pct  = (diff / Math.abs(prev) * 100).toFixed(1);
-    const good = higherIsBetter ? diff > 0 : diff < 0;
-    const cls  = Math.abs(diff) < 0.0001 ? 'neu' : (good ? 'up' : 'down');
-    const sign = diff > 0 ? '▲' : '▼';
-    return `<div class="kpi-delta ${cls}">${sign} ${Math.abs(+pct)}% vs ${baseLabel}</div>`;
+  // Delta baseline
+  let base = null, baseLabel = null, curr = null;
+  if (isRangeMode()) {
+    base      = getSeasonData(selLeague, selFrom);
+    curr      = getSeasonData(selLeague, selTo);
+    baseLabel = `${selFrom}/${+selFrom+1}`;
+  } else {
+    const yr = +selFrom;
+    base = getSeasonData(selLeague, String(yr-5)) || getSeasonData(selLeague, String(yr-10));
+    curr = s;
+    baseLabel = getSeasonData(selLeague, String(yr-5)) ? '5a' : '10a';
+    if (!base) baseLabel = null;
+  }
+
+  function delta(cVal, bVal, hiGood=true) {
+    if (bVal==null||cVal==null||Math.abs(bVal)<1e-9) return '';
+    const diff = cVal - bVal;
+    const pct  = diff / Math.abs(bVal) * 100;
+    const good = hiGood ? diff>0 : diff<0;
+    const cls  = Math.abs(pct)<0.05 ? 'neu' : (good?'up':'down');
+    return `<div class="kpi-delta ${cls}">${diff>0?'▲':'▼'} ${Math.abs(pct).toFixed(1)}% vs ${baseLabel}</div>`;
   }
 
   const na = '<span style="color:var(--muted)">—</span>';
-  const color = LEAGUE_COLORS[selLeague] || '#3ddc84';
+  const teamLabel = selTeam ? `<div style="font-size:8px;color:var(--accent);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${selTeam}</div>` : '';
 
   strip.innerHTML = [
-    { v: s ? s.shots.toLocaleString('es') : na,            lbl:'Tiros',         color:'var(--text)',  d:'' },
-    { v: s ? s.goals.toLocaleString('es') : na,            lbl:'Goles',         color:'#3ddc84',      d: base && s ? delta(s.goals/s.shots*100, base.goals/base.shots*100) : '' },
-    { v: s ? s.xg_per_shot.toFixed(3) : na,                lbl:'xG / tiro',     color:'#29b6f6',      d: base && s ? delta(s.xg_per_shot, base.xg_per_shot) : '' },
-    { v: s ? (s.pct_in_box*100).toFixed(1)+'%' : na,       lbl:'% en área',     color:'var(--text)',  d: base && s ? delta(s.pct_in_box, base.pct_in_box) : '' },
-    { v: s ? s.median_dist.toFixed(1)+' m' : na,           lbl:'Dist. mediana', color:'var(--text)',  d: base && s ? delta(s.median_dist, base.median_dist, false) : '' },
-    { v: s ? s.avg_centrality.toFixed(3) : na,             lbl:'Centralidad',   color:'var(--text)',  d: base && s ? delta(s.avg_centrality, base.avg_centrality) : '' },
-  ].map(({v,lbl,color:c,d}) =>
+    { v: s ? s.shots.toLocaleString('es')         : na, lbl:'Tiros',         c:'var(--text)', d:'',                                                       tip:'kpi_shots' },
+    { v: s ? s.goals.toLocaleString('es')         : na, lbl:'Goles',         c:'#3ddc84',     d:(base&&curr)?delta(curr.goals/curr.shots,base.goals/base.shots):'', tip:'kpi_goals' },
+    { v: s ? s.xg_per_shot.toFixed(3)             : na, lbl:'xG / tiro',     c:'#29b6f6',     d:(base&&curr)?delta(curr.xg_per_shot,base.xg_per_shot):'',  tip:'kpi_xg' },
+    { v: s ? (s.pct_in_box*100).toFixed(1)+'%'   : na, lbl:'% en área',     c:'var(--text)', d:(base&&curr)?delta(curr.pct_in_box,base.pct_in_box):'',   tip:'kpi_box' },
+    { v: s ? s.median_dist.toFixed(1)+' m'        : na, lbl:'Dist. mediana', c:'var(--text)', d:(base&&curr)?delta(curr.median_dist,base.median_dist,false):'', tip:'kpi_dist' },
+    { v: s ? s.avg_centrality.toFixed(3)          : na, lbl:'Centralidad',   c:'var(--text)', d:(base&&curr)?delta(curr.avg_centrality,base.avg_centrality):'', tip:'kpi_central' },
+  ].map(({v,lbl,c,d,tip}) =>
     `<div class="kpi-card">
       <div class="kpi-val" style="color:${c}">${v}</div>
-      <div class="kpi-lbl">${lbl}</div>
+      ${teamLabel}
+      <div class="kpi-lbl">${lbl} <i class="info-icon" onmouseenter="showTip('${tip}',event)" onmouseleave="hideTip()">ℹ</i></div>
       ${d}
     </div>`
   ).join('');
 }
 
 // ── TREND CHARTS ──────────────────────────────────────────────────────────────
-function trendDataset(key, metricFn, seasons) {
+function trendDataset(key, metricFn, allSeasons) {
   const l = DATA.leagues[key];
   if (!l?.seasons) return null;
-  const color = LEAGUE_COLORS[key];
-  const isSel = key === selLeague;
+  const color   = LEAGUE_COLORS[key];
+  const isSel   = key === selLeague;
+  const fromIdx = allSeasons.indexOf(selFrom);
+  const toIdx   = allSeasons.indexOf(selTo);
+
   return {
-    label: l.name,
-    data: seasons.map(s => { const d=l.seasons[s]; return d ? metricFn(d) : null; }),
-    borderColor:       color,
-    backgroundColor:   hexRgba(color, 0.12),
-    borderWidth:       isSel ? 2.5 : 1.5,
-    pointRadius:       seasons.map(s => s===selSeason ? 6 : (isSel ? 3 : 1.5)),
-    pointBackgroundColor: seasons.map(s => s===selSeason ? '#fff' : color),
-    pointBorderColor:  seasons.map(s => s===selSeason ? color : 'transparent'),
-    pointBorderWidth:  2,
+    label: selTeam ? selTeam : l.name,
+    data: allSeasons.map(s => {
+      const d = getSeasonData(key, s);
+      return d ? metricFn(d) : null;
+    }),
+    segment: {
+      borderColor: ctx => {
+        const i = ctx.p0DataIndex;
+        return (i>=fromIdx&&i<=toIdx) ? color : hexRgba(color,.25);
+      },
+      borderWidth: ctx => {
+        const i = ctx.p0DataIndex;
+        return (i>=fromIdx&&i<=toIdx) ? (isSel?2.5:1.8) : (isSel?1.2:.8);
+      },
+    },
+    borderColor: color,
+    backgroundColor: hexRgba(color, .08),
+    borderWidth: isSel ? 2.5 : 1.8,
+    pointRadius: allSeasons.map((_,i) => {
+      if (i===fromIdx||i===toIdx) return isSel?6:4;
+      if (i>fromIdx&&i<toIdx)     return isSel?3:2;
+      return 1;
+    }),
+    pointBackgroundColor: allSeasons.map((_,i) => (i>=fromIdx&&i<=toIdx) ? color : hexRgba(color,.2)),
+    pointBorderColor: allSeasons.map((_,i) => (i===fromIdx||i===toIdx)?'#fff':'transparent'),
+    pointBorderWidth: 1.5,
     tension: 0.3,
     spanGaps: true,
   };
@@ -369,88 +643,96 @@ function trendDataset(key, metricFn, seasons) {
 function renderTrendCharts() {
   if (!DATA) return;
   const seasons = DATA.all_seasons;
-  const keys    = [...compareLeagues];
+  // If team selected, only show current league; otherwise show all toggled leagues
+  const keys = selTeam ? [selLeague] : [...compareLeagues];
+  const fromIdx = seasons.indexOf(selFrom);
+  const toIdx   = seasons.indexOf(selTo);
 
   const configs = [
-    { id:'chart-xg',      metric: d=>d.xg_per_shot,                   fmt: v=>`${v.toFixed(3)} xG`,  yoyFmt: d=>`${d>0?'+':''}${(d*1000).toFixed(1)}‰` },
-    { id:'chart-dist',    metric: d=>d.median_dist,                    fmt: v=>`${v.toFixed(1)} m`,    yoyFmt: d=>`${d>0?'+':''}${d.toFixed(2)} m` },
-    { id:'chart-box',     metric: d=>+(d.pct_in_box*100).toFixed(2),   fmt: v=>`${v.toFixed(1)}%`,     yoyFmt: d=>`${d>0?'+':''}${d.toFixed(1)} pp` },
-    { id:'chart-central', metric: d=>+d.avg_centrality.toFixed(4),     fmt: v=>v.toFixed(3),           yoyFmt: d=>`${d>0?'+':''}${d.toFixed(3)}` },
+    { id:'chart-xg',      metric:d=>d.xg_per_shot,                fmt:v=>`${v.toFixed(3)} xG`, yoy:d=>`${d>0?'+':''}${(d*1000).toFixed(1)}‰` },
+    { id:'chart-dist',    metric:d=>d.median_dist,                 fmt:v=>`${v.toFixed(1)} m`,  yoy:d=>`${d>0?'+':''}${d.toFixed(2)} m` },
+    { id:'chart-box',     metric:d=>+(d.pct_in_box*100).toFixed(2),fmt:v=>`${v.toFixed(1)}%`,   yoy:d=>`${d>0?'+':''}${d.toFixed(1)} pp` },
+    { id:'chart-central', metric:d=>+d.avg_centrality.toFixed(4),  fmt:v=>v.toFixed(3),         yoy:d=>`${d>0?'+':''}${d.toFixed(3)}` },
   ];
 
-  configs.forEach(({id, metric, fmt, yoyFmt}) => {
+  configs.forEach(({id, metric, fmt, yoy}) => {
     const canvas = document.getElementById(id);
     if (!canvas) return;
     if (CHARTS[id]) { CHARTS[id].destroy(); delete CHARTS[id]; }
-
     const datasets = keys.map(k=>trendDataset(k,metric,seasons)).filter(Boolean);
-
     CHARTS[id] = new Chart(canvas, {
       type: 'line',
       data: { labels: seasons.map(s=>`${s}/${+s+1}`), datasets },
       options: {
-        responsive: true, maintainAspectRatio: false,
-        interaction: { mode:'index', intersect:false },
-        plugins: {
-          legend: { display: datasets.length>1, position:'bottom', labels:{boxWidth:10,padding:6,font:{size:9}} },
-          tooltip: {
-            backgroundColor:'#0f2218', borderColor:'rgba(255,255,255,0.12)', borderWidth:1,
-            callbacks: {
+        responsive:true, maintainAspectRatio:false,
+        interaction:{ mode:'index', intersect:false },
+        plugins:{
+          legend:{ display:datasets.length>1, position:'bottom', labels:{boxWidth:10,padding:6,font:{size:9}} },
+          tooltip:{
+            backgroundColor:'#0f2218',borderColor:'rgba(255,255,255,0.12)',borderWidth:1,
+            callbacks:{
               title: ctx => {
-                const idx = ctx[0].dataIndex;
-                return `${seasons[idx]}/${+seasons[idx]+1}`;
+                const i = ctx[0].dataIndex;
+                const inR = i>=fromIdx&&i<=toIdx;
+                return `${seasons[i]}/${+seasons[i]+1}${inR?' ◀ en rango':''}`;
               },
               label: ctx => {
                 const v    = ctx.parsed.y;
                 const prev = ctx.dataset.data[ctx.dataIndex-1];
-                if (v == null) return ` ${ctx.dataset.label}: —`;
-                const yoy = (prev!=null && prev!==0) ? yoyFmt(v-prev) : null;
-                const yoyStr = yoy ? `  (${yoy} YoY)` : '';
-                // Highlight selected season
-                const isSel = seasons[ctx.dataIndex] === selSeason;
-                return ` ${isSel?'▶ ':''}${ctx.dataset.label}: ${fmt(v)}${yoyStr}`;
+                if (v==null) return ` ${ctx.dataset.label}: —`;
+                const yoyStr = (prev!=null&&prev!==0) ? `  (${yoy(v-prev)} YoY)` : '';
+                return ` ${ctx.dataset.label}: ${fmt(v)}${yoyStr}`;
               },
             },
           },
         },
-        scales: {
-          x: { grid:{color:'rgba(255,255,255,0.04)'}, ticks:{maxRotation:45,font:{size:9}} },
-          y: { grid:{color:'rgba(255,255,255,0.04)'}, beginAtZero:false },
+        scales:{
+          x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{maxRotation:45,font:{size:9}}},
+          y:{grid:{color:'rgba(255,255,255,0.04)'},beginAtZero:false},
         },
       },
     });
   });
 }
 
-// ── SEASON CHARTS ─────────────────────────────────────────────────────────────
+// ── SEASON / RANGE CHARTS ────────────────────────────────────────────────────
 function renderSeasonCharts() {
   if (!DATA) return;
-  const l     = DATA.leagues[selLeague];
-  const s     = l?.seasons?.[selSeason];
-  const color = LEAGUE_COLORS[selLeague] || '#3ddc84';
+  const range = getSelRange();
+  const s     = aggregateRange(selLeague, range);
 
-  // Distance distribution
+  updateRangeTitles();
+
+  // Distance distribution with zone colors
   const dc = document.getElementById('chart-distrib');
   if (dc) {
     if (CHARTS['chart-distrib']) { CHARTS['chart-distrib'].destroy(); delete CHARTS['chart-distrib']; }
     CHARTS['chart-distrib'] = new Chart(dc, {
       type: 'bar',
       data: {
-        labels: s ? (DATA.dist_labels || s.dist_labels || []) : [],
+        labels: DATA.dist_labels || [],
         datasets: [{ label:'Disparos', data: s ? s.dist_bins : [],
-          backgroundColor: hexRgba(color, 0.65), borderColor: color, borderWidth:1, borderRadius:3 }],
+          backgroundColor: (DATA.dist_labels||[]).map((_,i) => ZONE_COLORS[i] || '#3ddc84'),
+          borderColor: (DATA.dist_labels||[]).map((_,i) => ZONE_COLORS[i] || '#3ddc84'),
+          borderWidth: 1, borderRadius: 3 }],
       },
       options: {
         responsive:true, maintainAspectRatio:false,
-        plugins: {
+        plugins:{
           legend:{display:false},
           tooltip:{
             backgroundColor:'#0f2218',borderColor:'rgba(255,255,255,0.12)',borderWidth:1,
-            callbacks:{label:ctx=>` ${ctx.parsed.y.toLocaleString('es')} disparos`},
+            callbacks:{
+              label: ctx => {
+                const total = (s?.dist_bins||[]).reduce((a,b)=>a+b,0);
+                const pct   = total ? (ctx.parsed.y/total*100).toFixed(1) : '0.0';
+                return ` ${ctx.parsed.y.toLocaleString('es')} disparos (${pct}%)`;
+              },
+            },
           },
         },
         scales:{
-          x:{grid:{color:'rgba(255,255,255,0.04)'},title:{display:true,text:'metros',color:'#7e93b3',font:{size:10}}},
+          x:{grid:{color:'rgba(255,255,255,0.04)'},title:{display:true,text:'metros al arco',color:'#7e93b3',font:{size:10}}},
           y:{grid:{color:'rgba(255,255,255,0.04)'},beginAtZero:true},
         },
       },
@@ -462,19 +744,19 @@ function renderSeasonCharts() {
   if (sc) {
     if (CHARTS['chart-sit']) { CHARTS['chart-sit'].destroy(); delete CHARTS['chart-sit']; }
     if (s?.by_situation) {
-      const SIT_COLORS = {OpenPlay:'#3ddc84',FromCorner:'#29b6f6',DirectFreekick:'#ff6900',SetPiece:'#bf5af2',Penalty:'#ff3a5e'};
-      const SIT_LABELS = {OpenPlay:'Juego abierto',FromCorner:'Córner',DirectFreekick:'Tiro libre',SetPiece:'Pelota parada',Penalty:'Penal'};
+      const SIT_C = {OpenPlay:'#3ddc84',FromCorner:'#29b6f6',DirectFreekick:'#ff6900',SetPiece:'#bf5af2',Penalty:'#ff3a5e'};
+      const SIT_L = {OpenPlay:'Juego abierto',FromCorner:'Córner',DirectFreekick:'Tiro libre',SetPiece:'Pelota parada',Penalty:'Penal'};
       const entries = Object.entries(s.by_situation);
       CHARTS['chart-sit'] = new Chart(sc, {
         type:'doughnut',
         data:{
-          labels: entries.map(([k])=>SIT_LABELS[k]||k),
+          labels: entries.map(([k])=>SIT_L[k]||k),
           datasets:[{data:entries.map(([,v])=>v),
-            backgroundColor:entries.map(([k])=>SIT_COLORS[k]||'#7e93b3'),
+            backgroundColor:entries.map(([k])=>SIT_C[k]||'#7e93b3'),
             borderColor:'#040d08',borderWidth:2}],
         },
         options:{
-          responsive:true,maintainAspectRatio:false,
+          responsive:true, maintainAspectRatio:false,
           plugins:{
             legend:{position:'right',labels:{boxWidth:10,padding:6,font:{size:9}}},
             tooltip:{

@@ -37,8 +37,6 @@ LEAGUES = {
     "La_liga":    {"name": "La Liga",         "country": "España",     "flag": "🇪🇸",        "color": "#ff6900", "iso": 724},
     "Bundesliga": {"name": "Bundesliga",      "country": "Alemania",   "flag": "🇩🇪",        "color": "#e8c320", "iso": 276},
     "Serie_A":    {"name": "Serie A",         "country": "Italia",     "flag": "🇮🇹",        "color": "#1d9e54", "iso": 380},
-    "Ligue_1":    {"name": "Ligue 1",         "country": "Francia",    "flag": "🇫🇷",        "color": "#bf5af2", "iso": 250},
-    "RFPL":       {"name": "Liga Rusa",       "country": "Rusia",      "flag": "🇷🇺",        "color": "#ff3a5e", "iso": 643},
 }
 SEASONS = [str(y) for y in range(2014, 2025)]
 
@@ -85,6 +83,34 @@ def pct(part: int, total: int) -> float:
 
 
 # ── AGGREGATION ────────────────────────────────────────────────────────────────
+
+def aggregate_by_team(shots: list[dict]) -> dict:
+    """
+    Group shots by shooting team and aggregate each team's stats.
+    Each shot has h_a ('h'/'a') + h_team/a_team. The shooting team is
+    h_team when h_a=='h', otherwise a_team.
+    Returns {team_name: {stats}} — same structure as aggregate() minus
+    dist_labels and by_shot_type to keep data.json lean.
+    """
+    buckets: dict[str, list] = {}
+    for s in shots:
+        h_a  = s.get("h_a", "")
+        team = s.get("h_team") if h_a == "h" else s.get("a_team")
+        if team:
+            buckets.setdefault(str(team), []).append(s)
+
+    KEEP = {
+        "shots", "goals", "xg_total", "xg_per_shot", "conversion",
+        "pct_in_box", "avg_dist", "median_dist", "avg_centrality",
+        "dist_bins", "by_situation",
+    }
+    result = {}
+    for team, tshots in sorted(buckets.items()):
+        stats = aggregate(tshots)
+        if stats:
+            result[team] = {k: v for k, v in stats.items() if k in KEEP}
+    return result
+
 
 def aggregate(shots: list[dict]) -> dict:
     """Compute all dashboard metrics for a list of Understat shot dicts."""
@@ -197,9 +223,11 @@ def main():
                 print(f"  {season}: empty")
                 continue
 
+            team_stats = aggregate_by_team(shots)
             output["leagues"][league_key]["seasons"][season] = {
                 "label":  f"{season}/{int(season)+1}",
                 **stats,
+                "teams": team_stats,
             }
             total_shots += stats["shots"]
             found_files += 1
@@ -208,8 +236,16 @@ def main():
                 f"{stats['goals']:>4} goals | "
                 f"xG/shot {stats['xg_per_shot']:.3f} | "
                 f"median dist {stats['median_dist']:.1f}m | "
-                f"in box {stats['pct_in_box']*100:.0f}%"
+                f"in box {stats['pct_in_box']*100:.0f}% | "
+                f"{len(team_stats)} equipos"
             )
+
+    # Collect all team names across all seasons for each league (for the dropdown)
+    for league_key in output["leagues"]:
+        all_teams: set[str] = set()
+        for sdata in output["leagues"][league_key]["seasons"].values():
+            all_teams.update(sdata.get("teams", {}).keys())
+        output["leagues"][league_key]["all_teams"] = sorted(all_teams)
 
     with open(OUT_FILE, "w") as f:
         json.dump(output, f, ensure_ascii=False, separators=(",", ":"))
