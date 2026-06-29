@@ -24,7 +24,6 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 
 /* LEFT PANEL */
 .left-panel{border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
-.map-wrap{flex:0 0 268px;background:var(--surface);border-bottom:1px solid var(--border)}
 .league-list{flex:1;overflow-y:auto;padding:8px}
 .league-card{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;cursor:pointer;transition:background .15s;border:1px solid transparent;margin-bottom:4px}
 .league-card:hover{background:var(--surface2)}
@@ -97,65 +96,8 @@ input[type=range]{width:100%;accent-color:var(--accent);cursor:pointer;height:4p
 </div>
 
 <div class="main-grid">
-  <!-- LEFT: MAP + LEAGUE LIST -->
+  <!-- LEFT: LEAGUE LIST -->
   <div class="left-panel">
-    <div class="map-wrap">
-      <svg id="europe-svg" viewBox="0 0 300 268" width="300" height="268" xmlns="http://www.w3.org/2000/svg">
-        <!-- Context countries (muted) -->
-        <!-- Scandinavia -->
-        <path d="M 106,90 L 150,56 L 178,64 L 172,88 L 158,108 L 138,116 L 114,110 Z" fill="#0d1f16" stroke="#162c1e" stroke-width="0.6"/>
-        <!-- Denmark -->
-        <path d="M 106,90 L 118,84 L 124,98 L 116,112 L 104,112 Z" fill="#0d1f16" stroke="#162c1e" stroke-width="0.6"/>
-        <!-- Poland -->
-        <path d="M 150,112 L 198,108 L 202,138 L 192,158 L 150,156 L 148,138 Z" fill="#0d1f16" stroke="#162c1e" stroke-width="0.6"/>
-        <!-- Czech + Austria + Slovakia -->
-        <path d="M 142,156 L 196,152 L 198,170 L 150,174 L 140,168 Z" fill="#0d1f16" stroke="#162c1e" stroke-width="0.6"/>
-        <!-- Switzerland -->
-        <path d="M 98,174 L 122,170 L 120,184 L 98,186 Z" fill="#0d1f16" stroke="#162c1e" stroke-width="0.6"/>
-        <!-- BeNeLux -->
-        <path d="M 74,140 L 80,124 L 106,126 L 98,144 Z" fill="#0d1f16" stroke="#162c1e" stroke-width="0.6"/>
-        <!-- Balkans -->
-        <path d="M 150,174 L 206,166 L 214,196 L 198,216 L 172,210 L 150,192 Z" fill="#0d1f16" stroke="#162c1e" stroke-width="0.6"/>
-        <!-- Portugal (separate from Spain for clarity) -->
-        <path d="M 14,196 L 36,194 L 38,228 L 22,244 L 12,230 Z" fill="#0d1f16" stroke="#162c1e" stroke-width="0.6"/>
-
-        <!-- ACTIVE LEAGUE COUNTRIES — colored, clickable -->
-        <!-- Ireland (context for UK) -->
-        <path d="M 22,112 L 38,104 L 42,122 L 34,140 L 20,134 Z" fill="#0d1f16" stroke="#162c1e" stroke-width="0.6"/>
-        <!-- UK -->
-        <path id="map-EPL"
-              d="M 54,88 L 68,78 L 78,94 L 80,124 L 75,148 L 62,156 L 42,152 L 36,138 L 42,118 L 48,100 Z"
-              class="map-country" data-league="EPL"
-              stroke-width="1" style="cursor:pointer;transition:fill .2s"/>
-        <!-- France (Ligue 1 - shown but muted if not in data) -->
-        <path id="map-Ligue_1"
-              d="M 50,148 L 74,142 L 108,158 L 102,198 L 76,210 L 50,204 L 40,178 Z"
-              class="map-country" data-league="Ligue_1"
-              stroke-width="1" style="cursor:pointer;transition:fill .2s"/>
-        <!-- Spain (La Liga) -->
-        <path id="map-La_liga"
-              d="M 36,194 L 82,202 L 86,224 L 64,252 L 38,252 L 22,244 L 20,216 Z"
-              class="map-country" data-league="La_liga"
-              stroke-width="1" style="cursor:pointer;transition:fill .2s"/>
-        <!-- Germany (Bundesliga) -->
-        <path id="map-Bundesliga"
-              d="M 98,116 L 150,112 L 154,140 L 144,172 L 102,172 L 94,144 Z"
-              class="map-country" data-league="Bundesliga"
-              stroke-width="1" style="cursor:pointer;transition:fill .2s"/>
-        <!-- Italy (Serie A) -->
-        <path id="map-Serie_A"
-              d="M 110,176 L 144,166 L 152,206 L 170,220 L 154,242 L 150,246 L 134,246 L 118,240 L 114,222 L 108,198 Z"
-              class="map-country" data-league="Serie_A"
-              stroke-width="1" style="cursor:pointer;transition:fill .2s"/>
-
-        <!-- Country labels -->
-        <text x="58" y="122" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="8" font-family="-apple-system,sans-serif" pointer-events="none">ENG</text>
-        <text x="75" y="180" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="8" font-family="-apple-system,sans-serif" pointer-events="none">FRA</text>
-        <text x="54" y="226" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="8" font-family="-apple-system,sans-serif" pointer-events="none">ESP</text>
-        <text x="124" y="146" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="8" font-family="-apple-system,sans-serif" pointer-events="none">GER</text>
-        <text x="134" y="214" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="8" font-family="-apple-system,sans-serif" pointer-events="none">ITA</text>
-      </svg>
-    </div>
     <div class="league-list" id="league-list"></div>
   </div>
 
@@ -211,7 +153,6 @@ async function loadData() {
   } catch(e) {
     document.getElementById('data-status').textContent = 'Sin datos';
     buildLeagueList(null);
-    initMap(null);
   }
 }
 
@@ -223,41 +164,7 @@ function init() {
   // Only keep leagues that have data in compareLeagues
   compareLeagues = new Set(Object.keys(DATA.leagues).filter(k => DATA.leagues[k].seasons && Object.keys(DATA.leagues[k].seasons).length > 0));
   buildLeagueList(DATA);
-  initMap(DATA);
   buildRightPanel();
-}
-
-// ── MAP ───────────────────────────────────────────────────────────────────────
-function initMap(data) {
-  const paths = document.querySelectorAll('.map-country');
-  paths.forEach(el => {
-    const key = el.dataset.league;
-    const hasData = data && data.leagues[key] && Object.keys(data.leagues[key].seasons||{}).length > 0;
-    const color   = LEAGUE_COLORS[key] || '#888';
-    const isActive = key === selLeague;
-
-    el.style.fill   = hasData ? hexRgba(color, isActive ? 0.85 : 0.3) : '#0d1f16';
-    el.style.stroke  = hasData ? color : '#162c1e';
-    el.style.strokeWidth = hasData ? (isActive ? '1.5' : '0.8') : '0.5';
-
-    if (hasData) {
-      el.onmouseenter = () => { if (key !== selLeague) el.style.fill = hexRgba(color, 0.55); };
-      el.onmouseleave = () => { el.style.fill = hexRgba(color, key===selLeague ? 0.85 : 0.3); };
-      el.onclick      = () => selectLeague(key);
-    }
-  });
-}
-
-function updateMapSelection() {
-  document.querySelectorAll('.map-country').forEach(el => {
-    const key = el.dataset.league;
-    const data = DATA?.leagues[key];
-    const hasData = data && Object.keys(data.seasons||{}).length > 0;
-    if (!hasData) return;
-    const color = LEAGUE_COLORS[key];
-    el.style.fill = hexRgba(color, key===selLeague ? 0.85 : 0.3);
-    el.style.strokeWidth = key===selLeague ? '1.5' : '0.8';
-  });
 }
 
 // ── LEAGUE LIST ───────────────────────────────────────────────────────────────
@@ -287,7 +194,6 @@ function selectLeague(key) {
   selLeague = key;
   document.querySelectorAll('.league-card').forEach(c=>c.classList.remove('active'));
   document.getElementById(`lcard-${key}`)?.classList.add('active');
-  updateMapSelection();
   renderKPIs();
   renderSeasonCharts();
   renderTrendCharts();
