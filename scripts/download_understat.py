@@ -19,6 +19,8 @@ Coordinate system (Understat):
     Y = 0.0 (left side) → 0.5 (center) → 1.0 (right side)
 """
 
+from __future__ import annotations
+
 import asyncio
 import aiohttp
 import json

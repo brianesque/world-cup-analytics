@@ -19,6 +19,8 @@ Derived metrics:
     centrality  – how lateral-central the shot is; 1 = perfectly centered, 0 = at sideline
 """
 
+from __future__ import annotations
+
 import json
 import math
 import sys
