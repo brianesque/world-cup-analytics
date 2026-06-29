@@ -37,6 +37,9 @@ LEAGUES = {
     "La_liga":    {"name": "La Liga",         "country": "España",     "flag": "🇪🇸",        "color": "#ff6900", "iso": 724},
     "Bundesliga": {"name": "Bundesliga",      "country": "Alemania",   "flag": "🇩🇪",        "color": "#e8c320", "iso": 276},
     "Serie_A":    {"name": "Serie A",         "country": "Italia",     "flag": "🇮🇹",        "color": "#1d9e54", "iso": 380},
+    "Ligue_1":    {"name": "Ligue 1",         "country": "Francia",    "flag": "🇫🇷",        "color": "#bf5af2", "iso": 250},
+    "RFPL":       {"name": "Liga Rusa",       "country": "Rusia",      "flag": "🇷🇺",        "color": "#ff3a5e", "iso": 643,
+                   "data_note": "Temporada 2022/23 no disponible en Understat."},
 }
 SEASONS = [str(y) for y in range(2014, 2025)]
 
