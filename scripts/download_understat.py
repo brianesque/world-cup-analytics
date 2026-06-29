@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """
-Download shot and player data from Understat using Playwright (headless browser).
-Understat is a JavaScript-rendered SPA — plain HTTP requests only get the empty shell.
-Playwright runs a real Chromium instance that executes the JS and exposes the data.
+Download shot data from Understat using Playwright (headless Chromium).
+Understat is a JavaScript SPA — plain HTTP won't work, we need a real browser.
 
 Setup (una sola vez):
     pip3 install playwright
@@ -11,19 +10,24 @@ Setup (una sola vez):
 Usage:
     python3 scripts/download_understat.py
 
-Output:
-    data/understat/shots/{league}_{season}.json      ← todos los tiros de la temporada
-    data/understat/players/{league}_{season}.json    ← stats de jugadores
-    data/understat/_ckpt/{league}_{season}/          ← checkpoints por equipo
+Estrategia:
+  1. Página de liga  → datesData  (lista de partidos con IDs)
+  2. /match/{id}    → shotsData   (disparos individuales con X, Y, xG, etc.)
+  3. Checkpoint por partido → combinar en shots/{league}_{season}.json
 
-Estrategia: por cada liga/temporada carga la página de la liga (lista de equipos +
-player stats), luego cada página de equipo para obtener sus disparos.
-Total de cargas: ~1.400 páginas · ~3 tabs paralelas · ~5s/página ≈ 40-60 min.
-Resume-safe: archivos ya descargados se saltean automáticamente.
+Total: ~25.000 páginas de partido · 5 tabs paralelas · ~3s/página ≈ 4-5 hs.
+Resume-safe: partidos y temporadas ya descargadas se saltean.
 
-Coordenadas Understat (normalizadas):
-    X = 0.0 (línea de arco propio) → 1.0 (línea de arco rival)
-    Y = 0.0 (banda izquierda)      → 0.5 (centro)              → 1.0 (banda derecha)
+Campos de cada disparo (Understat):
+    id, minute, result, X, Y, xG, player, player_id,
+    h_a, situation, season, shotType, match_id,
+    h_team, a_team, h_goals, a_goals, date,
+    player_assisted, lastAction
+    + [league] agregado por este script
+
+Coordenadas normalizadas:
+    X = 0.0 (arco propio) → 1.0 (arco rival)
+    Y = 0.0 (banda izq.)  → 0.5 (centro)    → 1.0 (banda der.)
 """
 from __future__ import annotations
 
@@ -43,9 +47,9 @@ LEAGUES = {
     "Ligue_1":    "Ligue 1",
     "RFPL":       "Liga Rusa",
 }
-SEASONS    = [str(y) for y in range(2014, 2025)]  # 2014 = temporada 2014/15
-MAX_TABS   = 3      # tabs paralelas (más no necesariamente es más rápido)
-PAGE_DELAY = 1.5    # segundos de espera post-carga para que el JS termine
+SEASONS    = [str(y) for y in range(2014, 2025)]
+MAX_TABS   = 5      # tabs paralelas para partidos
+PAGE_DELAY = 0.5    # segundos extra post-carga
 BASE_URL   = "https://understat.com"
 DATA_DIR   = Path(__file__).parent.parent / "data" / "understat"
 
@@ -53,7 +57,6 @@ DATA_DIR   = Path(__file__).parent.parent / "data" / "understat"
 # ── HELPERS ────────────────────────────────────────────────────────────────────
 
 async def js_var(page, name: str):
-    """Lee una variable global de JavaScript de la página cargada. Retorna None si no existe."""
     try:
         return await page.evaluate(f"() => (typeof {name} !== 'undefined') ? {name} : null")
     except Exception:
@@ -61,121 +64,126 @@ async def js_var(page, name: str):
 
 
 async def goto(page, url: str, wait_var: str | None = None, timeout: int = 45_000):
-    """Navega a la URL y opcionalmente espera que una variable JS esté definida."""
     await page.goto(url, wait_until="domcontentloaded", timeout=timeout)
     if wait_var:
         try:
             await page.wait_for_function(
-                f"typeof {wait_var} !== 'undefined'",
-                timeout=timeout,
+                f"typeof {wait_var} !== 'undefined'", timeout=timeout
             )
         except Exception:
-            pass  # continuamos igual; si la variable falta se detecta después
+            pass
     await asyncio.sleep(PAGE_DELAY)
 
 
-# ── POR TEMPORADA ─────────────────────────────────────────────────────────────
+# ── DESCARGA DE UN PARTIDO ────────────────────────────────────────────────────
 
-async def download_season(browser, sem: asyncio.Semaphore, league: str, season: str) -> None:
+async def download_match(browser, sem: asyncio.Semaphore, match_id: str,
+                         league: str, season: str, ckpt_dir: Path) -> list[dict]:
+    ckpt_file = ckpt_dir / f"{match_id}.json"
+    if ckpt_file.exists():
+        return json.loads(ckpt_file.read_text())
+
+    async with sem:
+        page = await browser.new_page()
+        try:
+            await goto(page, f"{BASE_URL}/match/{match_id}", wait_var="shotsData")
+            shots_raw = await js_var(page, "shotsData")
+
+            shots: list[dict] = []
+            if shots_raw and isinstance(shots_raw, dict):
+                for shot_list in shots_raw.values():   # keys: "h", "a"
+                    for s in (shot_list or []):
+                        s["league"] = league
+                        shots.append(s)
+
+            ckpt_file.write_text(json.dumps(shots, ensure_ascii=False))
+            return shots
+        except Exception as e:
+            print(f"    ✗ match {match_id}: {e}")
+            return []
+        finally:
+            await page.close()
+
+
+# ── DESCARGA DE UNA TEMPORADA ─────────────────────────────────────────────────
+
+async def download_season(browser, sem: asyncio.Semaphore,
+                          league: str, season: str) -> None:
+    label       = f"{LEAGUES[league]} {season}/{int(season)+1}"
     shots_dir   = DATA_DIR / "shots"
     players_dir = DATA_DIR / "players"
     ckpt_dir    = DATA_DIR / "_ckpt" / f"{league}_{season}"
     ckpt_dir.mkdir(parents=True, exist_ok=True)
 
-    label       = f"{LEAGUES[league]} {season}/{int(season)+1}"
-    out_shots   = shots_dir / f"{league}_{season}.json"
+    out_shots   = shots_dir   / f"{league}_{season}.json"
     out_players = players_dir / f"{league}_{season}.json"
+    match_list_file = ckpt_dir / "_matches.json"
 
+    # ── Ya completado ──────────────────────────────────────────────────────────
     if out_shots.exists() and out_players.exists():
         n = len(json.loads(out_shots.read_text()))
-        print(f"  ↩ {label}: {n} shots (ya descargado)")
+        print(f"  ↩ {label}: {n} disparos (ya descargado)")
         return
 
-    async with sem:
-        page = await browser.new_page()
-        try:
-            # ── 1. Página de liga → player stats + lista de equipos ────────
-            print(f"  ↓ {label}: cargando página de liga…", flush=True)
-            await goto(page, f"{BASE_URL}/league/{league}/{season}", wait_var="matchesData")
+    # ── 1. Página de liga: player stats + lista de partidos ───────────────────
+    if not match_list_file.exists() or not out_players.exists():
+        print(f"  ↓ {label}: cargando página de liga…", flush=True)
+        async with sem:
+            page = await browser.new_page()
+            try:
+                await goto(page, f"{BASE_URL}/league/{league}/{season}",
+                           wait_var="datesData")
 
-            players_data = await js_var(page, "playersData")
-            matches_data = await js_var(page, "matchesData")
+                players_data = await js_var(page, "playersData")
+                dates_data   = await js_var(page, "datesData")
 
-            if players_data and not out_players.exists():
-                out_players.write_text(json.dumps(players_data, ensure_ascii=False))
-                print(f"    ✓ {len(players_data)} jugadores guardados")
-            elif not players_data:
-                print(f"    ✗ no se encontró playersData")
+                if players_data and not out_players.exists():
+                    out_players.write_text(
+                        json.dumps(players_data, ensure_ascii=False)
+                    )
+                    print(f"    ✓ {len(players_data)} jugadores")
 
-            if not matches_data:
-                print(f"    ✗ no se encontró matchesData — salteo {label}")
-                return
+                if dates_data:
+                    match_list_file.write_text(
+                        json.dumps(dates_data, ensure_ascii=False, default=str)
+                    )
+            finally:
+                await page.close()
 
-            # Extraer nombres únicos de equipos desde los partidos
-            match_list = list(matches_data.values()) if isinstance(matches_data, dict) else matches_data
-            teams: set[str] = set()
-            for m in match_list:
-                for side in ("h", "a"):
-                    t = m.get(side, {})
-                    if isinstance(t, dict) and t.get("title"):
-                        teams.add(t["title"])
+    if not match_list_file.exists():
+        print(f"  ✗ {label}: no se pudo obtener la lista de partidos")
+        return
 
-            if not teams:
-                print(f"    ✗ no se encontraron equipos en matchesData")
-                return
+    dates_data = json.loads(match_list_file.read_text())
+    match_ids  = [str(m["id"]) for m in dates_data if m.get("id") and m.get("isResult")]
 
-            print(f"    → {len(teams)} equipos")
+    # También incluir partidos no jugados aún (por si la temporada está en curso)
+    if not match_ids:
+        match_ids = [str(m["id"]) for m in dates_data if m.get("id")]
 
-            # ── 2. Página de cada equipo → sus disparos ────────────────────
-            all_shots: list[dict] = []
+    already_done = sum(1 for mid in match_ids if (ckpt_dir / f"{mid}.json").exists())
+    print(f"  ↓ {label}: {len(match_ids)} partidos ({already_done} ya descargados)")
 
-            for team in sorted(teams):
-                team_slug  = team.replace(" ", "_")
-                ckpt_file  = ckpt_dir / f"{team_slug}.json"
+    # ── 2. Disparos por partido (paralelo) ────────────────────────────────────
+    tasks = [
+        download_match(browser, sem, mid, league, season, ckpt_dir)
+        for mid in match_ids
+    ]
+    results = await asyncio.gather(*tasks, return_exceptions=True)
 
-                if ckpt_file.exists():
-                    cached = json.loads(ckpt_file.read_text())
-                    all_shots.extend(cached)
-                    continue
+    all_shots: list[dict] = []
+    errors = 0
+    for r in results:
+        if isinstance(r, Exception):
+            errors += 1
+        elif isinstance(r, list):
+            all_shots.extend(r)
 
-                team_url = f"{BASE_URL}/team/{team_slug}/{season}"
-                await goto(page, team_url, wait_var="shotsData")
-                shots_raw = await js_var(page, "shotsData")
-
-                team_shots: list[dict] = []
-                if shots_raw and isinstance(shots_raw, dict):
-                    # shotsData en página de equipo: {"h": [...shots partidos local...],
-                    #                                  "a": [...shots partidos visitante...]}
-                    # Cada elemento ya tiene todos los campos del disparo.
-                    for side, shots_list in shots_raw.items():
-                        for s in (shots_list or []):
-                            s["league"]   = league
-                            s["season"]   = season
-                            s["team"]     = team
-                            team_shots.append(s)
-
-                ckpt_file.write_text(json.dumps(team_shots, ensure_ascii=False))
-                all_shots.extend(team_shots)
-                print(f"    ✓ {team}: {len(team_shots)} disparos", flush=True)
-
-            # Deduplicar por ID de disparo (cada tiro debe aparecer una sola vez)
-            seen:   set[str]  = set()
-            unique: list[dict] = []
-            for s in all_shots:
-                sid = str(s.get("id", ""))
-                if sid and sid in seen:
-                    continue
-                if sid:
-                    seen.add(sid)
-                unique.append(s)
-
-            out_shots.write_text(json.dumps(unique, ensure_ascii=False))
-            print(f"  ✓ {label}: {len(unique)} disparos totales guardados")
-
-        except Exception as e:
-            print(f"  ✗ Error en {label}: {e}")
-        finally:
-            await page.close()
+    out_shots.write_text(json.dumps(all_shots, ensure_ascii=False))
+    status = f"✓ {label}: {len(all_shots)} disparos"
+    if errors:
+        status += f" ({errors} partidos con error)"
+    print(f"  {status}")
 
 
 # ── MAIN ───────────────────────────────────────────────────────────────────────
@@ -184,7 +192,7 @@ async def main():
     try:
         from playwright.async_api import async_playwright
     except ImportError:
-        print("Playwright no instalado. Corré:")
+        print("Falta Playwright:")
         print("  pip3 install playwright")
         print("  python3 -m playwright install chromium")
         sys.exit(1)
@@ -203,22 +211,20 @@ async def main():
 
         for league in LEAGUES:
             print(f"\n── {LEAGUES[league]} ──────────────────────────────────")
-            # Procesar temporadas de la liga con paralelismo limitado por sem
             await asyncio.gather(
                 *[download_season(browser, sem, league, s) for s in SEASONS]
             )
             done += len(SEASONS)
             elapsed = time.time() - t_start
-            if done < total and done > 0:
-                eta_sec = elapsed / done * (total - done)
-                print(f"  ETA: ~{int(eta_sec // 60)} min restantes")
+            if done < total:
+                eta = elapsed / done * (total - done)
+                print(f"  ETA: ~{int(eta // 60)} min restantes")
 
         await browser.close()
 
     mins = int((time.time() - t_start) // 60)
-    print(f"\n✓ Listo en {mins} min. Datos en: {DATA_DIR}")
-    print("  Siguiente paso:")
-    print("    python3 scripts/build_league_trends.py")
+    print(f"\n✓ Listo en {mins} min  —  datos en: {DATA_DIR}")
+    print("  Siguiente: python3 scripts/build_league_trends.py")
 
 
 if __name__ == "__main__":
