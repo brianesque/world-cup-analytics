@@ -150,11 +150,12 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 
 <script>
 // ── GLOBALS ───────────────────────────────────────────────────────────────────
-let DATA      = null;
-let selLeague = 'EPL';
-let selFrom   = '2014';
-let selTo     = '2023';
-let selTeam   = '';     // '' = all teams
+let DATA            = null;
+let selLeague       = 'EPL';
+let selFrom         = '2014';
+let selTo           = '2023';
+let selTeam         = '';     // '' = all teams
+let lastMovedSlider = 'to';   // para z-index del slider dual
 
 const LEAGUE_COLORS = {
   EPL:'#00a8e8', La_liga:'#ff6900', Bundesliga:'#e8c320',
@@ -466,9 +467,6 @@ function buildTeamDropdown() {
   const teams = DATA.leagues[selLeague]?.all_teams || [];
   sel.innerHTML = `<option value="">Todos los equipos</option>` +
     teams.map(t => `<option value="${t}"${t===selTeam?' selected':''}>${t}</option>`).join('');
-  // Show/hide compare when team selected
-  const cs = document.getElementById('compare-section');
-  if (cs) cs.style.display = selTeam ? 'none' : '';
 }
 
 function onTeamChange(val) {
@@ -476,6 +474,7 @@ function onTeamChange(val) {
   buildTeamDropdown();
   buildLeagueList(DATA);
   renderKPIs();
+  renderCompareBar();
   renderTrendCharts();
   renderSeasonCharts();
 }
@@ -489,6 +488,24 @@ function refreshSliderFill() {
   const ti  = DATA.all_seasons.indexOf(selTo);
   fill.style.left  = (fi/max*100) + '%';
   fill.style.width = ((ti-fi)/max*100) + '%';
+  updateSliderZIndex();
+}
+
+function updateSliderZIndex() {
+  const fromEl = document.getElementById('slider-from');
+  const toEl   = document.getElementById('slider-to');
+  if (!fromEl || !toEl || !DATA) return;
+  const max     = DATA.all_seasons.length - 1;
+  const fromIdx = DATA.all_seasons.indexOf(selFrom);
+  const toIdx   = DATA.all_seasons.indexOf(selTo);
+  if (fromIdx === toIdx) {
+    // Solapados: dar prioridad al que todavía puede expandirse
+    fromEl.style.zIndex = (toIdx >= max) ? '4' : '3';
+    toEl.style.zIndex   = (toIdx >= max) ? '3' : '4';
+  } else {
+    fromEl.style.zIndex = lastMovedSlider === 'from' ? '4' : '3';
+    toEl.style.zIndex   = lastMovedSlider === 'to'   ? '4' : '3';
+  }
 }
 
 function updateSeasonDisplay() {
@@ -507,16 +524,36 @@ function updateRangeTitles() {
 }
 
 function onSliderFrom(val) {
-  const s = DATA.all_seasons;
-  selFrom = s[Math.min(+val, s.indexOf(selTo))];
+  lastMovedSlider = 'from';
+  const s      = DATA.all_seasons;
+  const newIdx = +val;
+  const toIdx  = s.indexOf(selTo);
+  if (newIdx <= toIdx) {
+    selFrom = s[newIdx];
+  } else {
+    // Cruzó "to": expandir hacia la derecha moviendo selTo
+    selTo   = s[newIdx];
+    document.getElementById('slider-to').value = newIdx;
+  }
   document.getElementById('slider-from').value = s.indexOf(selFrom);
+  updateSliderZIndex();
   afterSliderChange();
 }
 
 function onSliderTo(val) {
-  const s = DATA.all_seasons;
-  selTo = s[Math.max(+val, s.indexOf(selFrom))];
+  lastMovedSlider = 'to';
+  const s       = DATA.all_seasons;
+  const newIdx  = +val;
+  const fromIdx = s.indexOf(selFrom);
+  if (newIdx >= fromIdx) {
+    selTo = s[newIdx];
+  } else {
+    // Cruzó "from": expandir hacia la izquierda moviendo selFrom
+    selFrom = s[newIdx];
+    document.getElementById('slider-from').value = newIdx;
+  }
   document.getElementById('slider-to').value = s.indexOf(selTo);
+  updateSliderZIndex();
   afterSliderChange();
 }
 
@@ -535,6 +572,12 @@ function renderCompareBar() {
   if (!DATA) return;
   const bar = document.getElementById('compare-bar');
   if (!bar) return;
+  // Actualizar label según modo
+  const labelEl = document.querySelector('#compare-section .compare-label');
+  if (labelEl) {
+    const teamShort = selTeam ? selTeam.split(' ').slice(0,2).join(' ') : '';
+    labelEl.textContent = selTeam ? `Comparar ${teamShort} vs:` : 'Comparar ligas';
+  }
   bar.innerHTML = Object.entries(DATA.leagues).map(([key, l]) => {
     const on = compareLeagues.has(key);
     return `<button class="compare-btn${on?' active':''}"
@@ -640,15 +683,13 @@ function trendDataset(key, metricFn, allSeasons) {
     pointBorderColor: allSeasons.map((_,i) => (i===fromIdx||i===toIdx)?'#fff':'transparent'),
     pointBorderWidth: 1.5,
     tension: 0.3,
-    spanGaps: true,
+    spanGaps: false,
   };
 }
 
 function renderTrendCharts() {
   if (!DATA) return;
   const seasons = DATA.all_seasons;
-  // If team selected, only show current league; otherwise show all toggled leagues
-  const keys = selTeam ? [selLeague] : [...compareLeagues];
   const fromIdx = seasons.indexOf(selFrom);
   const toIdx   = seasons.indexOf(selTo);
 
@@ -663,7 +704,82 @@ function renderTrendCharts() {
     const canvas = document.getElementById(id);
     if (!canvas) return;
     if (CHARTS[id]) { CHARTS[id].destroy(); delete CHARTS[id]; }
-    const datasets = keys.map(k=>trendDataset(k,metric,seasons)).filter(Boolean);
+
+    let datasets;
+    if (selTeam) {
+      // Modo equipo: línea del equipo + promedio de su liga + otras ligas comparadas
+      const l     = DATA.leagues[selLeague];
+      const color = LEAGUE_COLORS[selLeague];
+
+      // 1. Línea del equipo: sólida, gruesa
+      const teamDataset = {
+        label: selTeam,
+        data: seasons.map(s => {
+          const d = l?.seasons?.[s]?.teams?.[selTeam];
+          return d ? metric(d) : null;
+        }),
+        borderColor: color,
+        borderWidth: 2.5,
+        backgroundColor: hexRgba(color, .08),
+        segment: {
+          borderColor: ctx => (ctx.p0DataIndex>=fromIdx&&ctx.p0DataIndex<=toIdx) ? color : hexRgba(color,.18),
+          borderWidth: ctx => (ctx.p0DataIndex>=fromIdx&&ctx.p0DataIndex<=toIdx) ? 2.5 : 1,
+        },
+        pointRadius: seasons.map((_,i) => {
+          if (i===fromIdx||i===toIdx) return 6;
+          if (i>fromIdx&&i<toIdx) return 3;
+          return 1;
+        }),
+        pointBackgroundColor: seasons.map((_,i) => (i>=fromIdx&&i<=toIdx) ? color : hexRgba(color,.15)),
+        pointBorderColor: seasons.map((_,i) => (i===fromIdx||i===toIdx)?'#fff':'transparent'),
+        pointBorderWidth: 1.5, tension: 0.3, spanGaps: false,
+      };
+
+      // 2. Promedio de la liga: punteado, mismo color, más tenue
+      const leagueAvgDataset = {
+        label: `${l.name} (liga)`,
+        data: seasons.map(s => { const d = l?.seasons?.[s]; return d ? metric(d) : null; }),
+        borderColor: hexRgba(color, .55),
+        borderWidth: 1.5,
+        borderDash: [5, 4],
+        backgroundColor: 'transparent',
+        segment: {
+          borderColor: ctx => (ctx.p0DataIndex>=fromIdx&&ctx.p0DataIndex<=toIdx) ? hexRgba(color,.55) : hexRgba(color,.1),
+        },
+        pointRadius: seasons.map((_,i) => (i>=fromIdx&&i<=toIdx) ? 2.5 : 0),
+        pointBackgroundColor: hexRgba(color, .4),
+        tension: 0.3, spanGaps: false,
+      };
+
+      // 3. Otras ligas comparadas: muy tenues, punteadas
+      const compareDatasets = [...compareLeagues]
+        .filter(k => k !== selLeague)
+        .map(k => {
+          const cl = DATA.leagues[k];
+          if (!cl?.seasons) return null;
+          const cc = LEAGUE_COLORS[k];
+          return {
+            label: cl.name,
+            data: seasons.map(s => { const d = cl.seasons[s]; return d ? metric(d) : null; }),
+            borderColor: hexRgba(cc, .4),
+            borderWidth: 1.1,
+            borderDash: [2, 3],
+            backgroundColor: 'transparent',
+            segment: {
+              borderColor: ctx => (ctx.p0DataIndex>=fromIdx&&ctx.p0DataIndex<=toIdx) ? hexRgba(cc,.4) : hexRgba(cc,.08),
+            },
+            pointRadius: seasons.map((_,i) => (i>=fromIdx&&i<=toIdx) ? 1.5 : 0),
+            pointBackgroundColor: hexRgba(cc, .3),
+            tension: 0.3, spanGaps: false,
+          };
+        }).filter(Boolean);
+
+      datasets = [teamDataset, leagueAvgDataset, ...compareDatasets];
+    } else {
+      // Modo liga: todas las ligas activas
+      datasets = [...compareLeagues].map(k => trendDataset(k, metric, seasons)).filter(Boolean);
+    }
+
     CHARTS[id] = new Chart(canvas, {
       type: 'line',
       data: { labels: seasons.map(s=>`${s}/${+s+1}`), datasets },
@@ -699,6 +815,31 @@ function renderTrendCharts() {
   });
 }
 
+// ── BAR % PLUGIN ─────────────────────────────────────────────────────────────
+const BAR_PCT_PLUGIN = {
+  id: 'barPct',
+  afterDatasetsDraw(chart) {
+    const data = chart.data.datasets[0]?.data;
+    if (!data?.length) return;
+    const total = data.reduce((a, b) => a + b, 0);
+    if (!total) return;
+    const ctx = chart.ctx;
+    chart.getDatasetMeta(0).data.forEach((bar, i) => {
+      const v = data[i];
+      if (!v) return;
+      const pct = (v / total * 100);
+      if (pct < 1.5) return; // no mostrar en barras muy pequeñas
+      ctx.save();
+      ctx.fillStyle = 'rgba(234,242,251,0.82)';
+      ctx.font = 'bold 9px -apple-system,sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
+      ctx.fillText(pct.toFixed(1) + '%', bar.x, bar.y - 2);
+      ctx.restore();
+    });
+  }
+};
+
 // ── SEASON / RANGE CHARTS ────────────────────────────────────────────────────
 function renderSeasonCharts() {
   if (!DATA) return;
@@ -713,6 +854,7 @@ function renderSeasonCharts() {
     if (CHARTS['chart-distrib']) { CHARTS['chart-distrib'].destroy(); delete CHARTS['chart-distrib']; }
     CHARTS['chart-distrib'] = new Chart(dc, {
       type: 'bar',
+      plugins: [BAR_PCT_PLUGIN],
       data: {
         labels: DATA.dist_labels || [],
         datasets: [{ label:'Disparos', data: s ? s.dist_bins : [],
@@ -762,12 +904,30 @@ function renderSeasonCharts() {
         options:{
           responsive:true, maintainAspectRatio:false,
           plugins:{
-            legend:{position:'right',labels:{boxWidth:10,padding:6,font:{size:9}}},
+            legend:{
+              position:'right',
+              labels:{
+                boxWidth:10, padding:6, font:{size:9},
+                generateLabels(chart) {
+                  const d     = chart.data;
+                  const total = d.datasets[0].data.reduce((a,b)=>a+b,0);
+                  return d.labels.map((lbl, i) => ({
+                    text: `${lbl}  ${total ? (d.datasets[0].data[i]/total*100).toFixed(1) : '0.0'}%`,
+                    fillStyle:   d.datasets[0].backgroundColor[i],
+                    strokeStyle: 'transparent',
+                    lineWidth: 0,
+                    index: i,
+                    datasetIndex: 0,
+                    hidden: false,
+                  }));
+                }
+              }
+            },
             tooltip:{
               backgroundColor:'#0f2218',borderColor:'rgba(255,255,255,0.12)',borderWidth:1,
               callbacks:{label:ctx=>{
                 const total=ctx.dataset.data.reduce((a,b)=>a+b,0);
-                return ` ${ctx.parsed.toLocaleString('es')} (${(ctx.parsed/total*100).toFixed(1)}%)`;
+                return ` ${ctx.parsed.toLocaleString('es')} disparos (${(ctx.parsed/total*100).toFixed(1)}%)`;
               }},
             },
           },
