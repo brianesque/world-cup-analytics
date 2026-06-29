@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Liga Trends — Shot Analytics</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
+<style>
+:root{
+  --bg:#040d08;--surface:#0b1a12;--surface2:#0f2218;--border:rgba(255,255,255,0.07);
+  --text:#eaf2fb;--muted:#7e93b3;--accent:#3ddc84;
+  --epl:#00a8e8;--laliga:#ff6900;--bund:#e8c320;--serie:#1d9e54;--ligue:#bf5af2;--rfpl:#ff3a5e;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh}
+
+/* TOP BAR */
+.topbar{display:flex;align-items:center;gap:16px;padding:12px 24px;border-bottom:1px solid var(--border);background:rgba(0,0,0,.35);backdrop-filter:blur(8px);position:sticky;top:0;z-index:100}
+.topbar h1{font-size:16px;font-weight:700;letter-spacing:.5px;color:var(--accent)}
+.topbar a{color:var(--muted);font-size:12px;text-decoration:none}
+.topbar a:hover{color:var(--text)}
+.topbar .sep{color:var(--border);font-size:18px}
+
+/* LAYOUT */
+.main-grid{display:grid;grid-template-columns:300px 1fr;gap:0;height:calc(100vh - 49px)}
+
+/* LEFT PANEL */
+.left-panel{border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+
+/* MAP */
+.map-wrap{flex:0 0 280px;position:relative;background:var(--surface)}
+#europe-map{width:100%;height:280px}
+.map-wrap svg{display:block}
+.country-path{fill:#0f2218;stroke:#1a3a28;stroke-width:.5;cursor:default;transition:fill .2s}
+.country-path.has-league{cursor:pointer}
+.country-path.has-league:hover{fill:rgba(61,220,132,.12)}
+.country-path.selected{stroke-width:1.5}
+
+/* LEAGUE CARDS */
+.league-list{flex:1;overflow-y:auto;padding:8px}
+.league-card{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;cursor:pointer;transition:background .15s;border:1px solid transparent;margin-bottom:4px}
+.league-card:hover{background:var(--surface2)}
+.league-card.active{background:var(--surface2);border-color:var(--border)}
+.league-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.league-info{flex:1;min-width:0}
+.league-name{font-size:13px;font-weight:600}
+.league-country{font-size:11px;color:var(--muted)}
+.league-kpi{font-size:11px;color:var(--muted);text-align:right}
+
+/* RIGHT PANEL */
+.right-panel{overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:20px}
+
+/* SEASON SLIDER */
+.slider-wrap{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 20px}
+.slider-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.slider-label{font-size:13px;color:var(--muted);font-weight:500}
+.season-display{font-size:18px;font-weight:800;color:var(--accent)}
+input[type=range]{width:100%;accent-color:var(--accent);cursor:pointer;height:4px}
+.season-ticks{display:flex;justify-content:space-between;margin-top:6px}
+.season-tick{font-size:10px;color:var(--muted)}
+
+/* KPI STRIP */
+.kpi-strip{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
+.kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 10px;text-align:center}
+.kpi-val{font-size:20px;font-weight:800;line-height:1.1}
+.kpi-lbl{font-size:10px;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.4px}
+
+/* CHARTS */
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px}
+.chart-title{font-size:12px;font-weight:600;color:var(--muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px}
+.chart-wrap{position:relative;height:200px}
+
+/* BOTTOM ROW */
+.bottom-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.chart-card.tall .chart-wrap{height:240px}
+
+/* COMPARE TOGGLE */
+.compare-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px}
+.compare-btn{padding:3px 10px;border-radius:20px;border:1px solid var(--border);background:none;color:var(--muted);font-size:11px;cursor:pointer;transition:all .15s}
+.compare-btn.active{color:#000;font-weight:600}
+
+/* NO DATA */
+.no-data{display:flex;flex-direction:column;align-items:center;justify-content:center;height:300px;color:var(--muted);gap:8px}
+.no-data-icon{font-size:32px}
+.no-data p{font-size:13px}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>⚽ Liga Trends</h1>
+  <span class="sep">|</span>
+  <a href="../shot-map/">← Shot Map WC</a>
+  <span class="sep">|</span>
+  <a href="../">← Inicio</a>
+  <span style="flex:1"></span>
+  <span style="font-size:11px;color:var(--muted)" id="data-status">Cargando datos...</span>
+</div>
+
+<div class="main-grid">
+
+  <!-- LEFT: MAP + LEAGUE LIST -->
+  <div class="left-panel">
+    <div class="map-wrap">
+      <div id="europe-map"></div>
+    </div>
+    <div class="league-list" id="league-list"></div>
+  </div>
+
+  <!-- RIGHT: DASHBOARD -->
+  <div class="right-panel" id="right-panel">
+    <div class="no-data" id="no-data-msg">
+      <div class="no-data-icon">📊</div>
+      <p>Cargando datos de ligas...</p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── GLOBALS ─────────────────────────────────────────────────────────────────
+let DATA       = null;   // full data.json
+let selLeague  = 'EPL';
+let selSeason  = '2023';
+let compareAll = false;
+
+const LEAGUE_COLORS = {
+  EPL:'#00a8e8', La_liga:'#ff6900', Bundesliga:'#e8c320',
+  Serie_A:'#1d9e54', Ligue_1:'#bf5af2', RFPL:'#ff3a5e'
+};
+
+// Chart instances (for destroy on re-render)
+const CHARTS = {};
+
+// ── CHART DEFAULTS ────────────────────────────────────────────────────────────
+Chart.defaults.color         = '#7e93b3';
+Chart.defaults.borderColor   = 'rgba(255,255,255,0.06)';
+Chart.defaults.font.family   = '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif';
+Chart.defaults.font.size     = 11;
+
+function chartOpts(overrides = {}) {
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#0f2218',
+        borderColor: 'rgba(255,255,255,0.12)',
+        borderWidth: 1,
+        callbacks: {},
+        ...overrides.tooltip,
+      },
+    },
+    scales: {
+      x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { maxRotation: 0 } },
+      y: { grid: { color: 'rgba(255,255,255,0.04)' }, beginAtZero: false },
+    },
+    ...overrides,
+  };
+}
+
+// ── LOAD DATA ─────────────────────────────────────────────────────────────────
+async function loadData() {
+  try {
+    const r = await fetch('data.json');
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    DATA = await r.json();
+    document.getElementById('data-status').textContent =
+      `Datos: ${Object.keys(DATA.leagues).length} ligas, ${DATA.all_seasons.length} temporadas`;
+    init();
+  } catch (e) {
+    document.getElementById('data-status').textContent = 'Sin datos locales';
+    document.getElementById('no-data-msg').innerHTML = `
+      <div class="no-data-icon">⚙️</div>
+      <p style="text-align:center;max-width:260px;line-height:1.6">
+        Para ver el dashboard, ejecutá:<br>
+        <code style="color:#3ddc84;font-size:12px">python scripts/download_understat.py</code><br>
+        <code style="color:#3ddc84;font-size:12px">python scripts/build_league_trends.py</code>
+      </p>`;
+    buildLeagueList(null);
+    buildMap(null);
+  }
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+function init() {
+  // Pick most recent season with data
+  const leagues = DATA.leagues;
+  for (const s of [...DATA.all_seasons].reverse()) {
+    if (Object.values(leagues).some(l => l.seasons && l.seasons[s])) {
+      selSeason = s;
+      break;
+    }
+  }
+
+  buildLeagueList(DATA);
+  buildMap(DATA);
+  buildRightPanel();
+}
+
+// ── LEAGUE LIST ───────────────────────────────────────────────────────────────
+function buildLeagueList(data) {
+  const container = document.getElementById('league-list');
+  const leagues = data ? Object.entries(data.leagues) : [
+    ['EPL',{name:'Premier League',country:'Inglaterra',flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿',color:'#00a8e8',seasons:{}}],
+    ['La_liga',{name:'La Liga',country:'España',flag:'🇪🇸',color:'#ff6900',seasons:{}}],
+    ['Bundesliga',{name:'Bundesliga',country:'Alemania',flag:'🇩🇪',color:'#e8c320',seasons:{}}],
+    ['Serie_A',{name:'Serie A',country:'Italia',flag:'🇮🇹',color:'#1d9e54',seasons:{}}],
+    ['Ligue_1',{name:'Ligue 1',country:'Francia',flag:'🇫🇷',color:'#bf5af2',seasons:{}}],
+    ['RFPL',{name:'Liga Rusa',country:'Rusia',flag:'🇷🇺',color:'#ff3a5e',seasons:{}}],
+  ];
+
+  container.innerHTML = leagues.map(([key, l]) => {
+    const seasonData = data && l.seasons ? l.seasons[selSeason] : null;
+    const kpi = seasonData ? `${seasonData.xg_per_shot.toFixed(3)} xG/tiro` : '—';
+    return `<div class="league-card${key===selLeague?' active':''}" onclick="selectLeague('${key}')" id="lcard-${key}">
+      <div class="league-dot" style="background:${l.color}"></div>
+      <div class="league-info">
+        <div class="league-name">${l.flag} ${l.name}</div>
+        <div class="league-country">${l.country}</div>
+      </div>
+      <div class="league-kpi">${kpi}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── EUROPE MAP ────────────────────────────────────────────────────────────────
+// Numeric ISO codes → league key
+const ISO_TO_LEAGUE = {826:'EPL',724:'La_liga',276:'Bundesliga',380:'Serie_A',250:'Ligue_1',643:'RFPL'};
+
+function buildMap(data) {
+  const container = document.getElementById('europe-map');
+  const W = container.offsetWidth || 300;
+  const H = 280;
+
+  d3.select(container).selectAll('*').remove();
+  const svg = d3.select(container).append('svg')
+    .attr('width', W).attr('height', H);
+
+  // Load world atlas
+  d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
+    .then(world => {
+      const countries = topojson.feature(world, world.objects.countries);
+
+      // Filter to European bounding box + Russia's European part
+      const europeanIsos = new Set([826,724,276,380,250,643,
+        8,40,56,100,191,203,208,233,246,300,348,352,372,428,440,442,470,
+        492,528,578,616,620,642,703,705,724,752,756,792,804]);
+
+      const projection = d3.geoMercator()
+        .center([15, 54])
+        .scale(W * 2.2)
+        .translate([W * 0.45, H * 0.55]);
+
+      const path = d3.geoPath().projection(projection);
+
+      svg.selectAll('.country-path')
+        .data(countries.features.filter(f => europeanIsos.has(+f.id)))
+        .enter().append('path')
+        .attr('class', d => {
+          const leagueKey = ISO_TO_LEAGUE[+d.id];
+          return 'country-path' + (leagueKey ? ' has-league' : '');
+        })
+        .attr('d', path)
+        .style('fill', d => {
+          const k = ISO_TO_LEAGUE[+d.id];
+          if (!k) return 'var(--surface2)';
+          const color = LEAGUE_COLORS[k];
+          return k === selLeague
+            ? color
+            : hexToRgba(color, 0.25);
+        })
+        .style('stroke', d => {
+          const k = ISO_TO_LEAGUE[+d.id];
+          return k ? LEAGUE_COLORS[k] : '#1a3a28';
+        })
+        .style('stroke-width', d => ISO_TO_LEAGUE[+d.id] ? '1' : '0.4')
+        .on('click', (event, d) => {
+          const k = ISO_TO_LEAGUE[+d.id];
+          if (k) selectLeague(k);
+        })
+        .on('mouseover', function(event, d) {
+          const k = ISO_TO_LEAGUE[+d.id];
+          if (k && k !== selLeague) {
+            d3.select(this).style('fill', hexToRgba(LEAGUE_COLORS[k], 0.5));
+          }
+        })
+        .on('mouseout', function(event, d) {
+          const k = ISO_TO_LEAGUE[+d.id];
+          if (k) {
+            d3.select(this).style('fill',
+              k === selLeague ? LEAGUE_COLORS[k] : hexToRgba(LEAGUE_COLORS[k], 0.25));
+          }
+        });
+    })
+    .catch(() => {
+      // Fallback: no map available (offline)
+      svg.append('text').attr('x', W/2).attr('y', H/2)
+        .attr('text-anchor', 'middle').attr('fill', '#7e93b3').attr('font-size', 12)
+        .text('(Mapa requiere conexión)');
+    });
+}
+
+function hexToRgba(hex, alpha) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+// ── SELECT LEAGUE ─────────────────────────────────────────────────────────────
+function selectLeague(key) {
+  selLeague = key;
+  document.querySelectorAll('.league-card').forEach(c => c.classList.remove('active'));
+  const card = document.getElementById(`lcard-${key}`);
+  if (card) card.classList.add('active');
+  buildMap(DATA);
+  buildRightPanel();
+}
+
+// ── RIGHT PANEL ───────────────────────────────────────────────────────────────
+function buildRightPanel() {
+  if (!DATA) return;
+
+  const panel = document.getElementById('right-panel');
+  panel.innerHTML = `
+    <!-- Season slider -->
+    <div class="slider-wrap">
+      <div class="slider-header">
+        <span class="slider-label">Temporada</span>
+        <span class="season-display" id="season-display">${selSeason}/${+selSeason+1}</span>
+      </div>
+      <input type="range" id="season-slider"
+        min="0" max="${DATA.all_seasons.length-1}"
+        value="${DATA.all_seasons.indexOf(selSeason)}"
+        oninput="onSlider(this.value)"/>
+      <div class="season-ticks">
+        ${DATA.all_seasons.filter((_,i)=>i%2===0).map(s=>`<span class="season-tick">${s}</span>`).join('')}
+      </div>
+    </div>
+
+    <!-- KPI strip -->
+    <div class="kpi-strip" id="kpi-strip"></div>
+
+    <!-- Compare toggle -->
+    <div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;font-weight:600;text-transform:uppercase;letter-spacing:.5px">
+        Comparar ligas en los gráficos
+      </div>
+      <div class="compare-bar" id="compare-bar"></div>
+    </div>
+
+    <!-- 4 trend charts -->
+    <div class="charts-grid">
+      <div class="chart-card">
+        <div class="chart-title">xG por disparo</div>
+        <div class="chart-wrap"><canvas id="chart-xg"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Distancia mediana al arco (m)</div>
+        <div class="chart-wrap"><canvas id="chart-dist"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">% de disparos dentro del área</div>
+        <div class="chart-wrap"><canvas id="chart-box"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Centralidad del disparo (0-1)</div>
+        <div class="chart-wrap"><canvas id="chart-central"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Bottom row: distance distribution + situation breakdown -->
+    <div class="bottom-row">
+      <div class="chart-card tall">
+        <div class="chart-title">Distribución de distancias — ${selSeason}/${+selSeason+1}</div>
+        <div class="chart-wrap"><canvas id="chart-distrib"></canvas></div>
+      </div>
+      <div class="chart-card tall">
+        <div class="chart-title">Situación del disparo — ${selSeason}/${+selSeason+1}</div>
+        <div class="chart-wrap"><canvas id="chart-sit"></canvas></div>
+      </div>
+    </div>
+  `;
+
+  renderCompareBar();
+  renderKPIs();
+  renderTrendCharts();
+  renderSeasonCharts();
+}
+
+// ── COMPARE BAR ───────────────────────────────────────────────────────────────
+let compareLeagues = new Set(['EPL']);
+
+function renderCompareBar() {
+  if (!DATA) return;
+  compareLeagues.add(selLeague);
+  const bar = document.getElementById('compare-bar');
+  bar.innerHTML = Object.entries(DATA.leagues).map(([key, l]) => {
+    const active = compareLeagues.has(key);
+    return `<button class="compare-btn${active?' active':''}"
+      style="${active?`background:${l.color};border-color:${l.color}`:''}"
+      onclick="toggleCompare('${key}')">${l.flag} ${l.name}</button>`;
+  }).join('');
+}
+
+function toggleCompare(key) {
+  if (compareLeagues.has(key) && compareLeagues.size > 1) {
+    compareLeagues.delete(key);
+  } else {
+    compareLeagues.add(key);
+  }
+  renderCompareBar();
+  renderTrendCharts();
+}
+
+// ── KPIs ─────────────────────────────────────────────────────────────────────
+function renderKPIs() {
+  if (!DATA) return;
+  const l = DATA.leagues[selLeague];
+  const s = l && l.seasons ? l.seasons[selSeason] : null;
+
+  const strip = document.getElementById('kpi-strip');
+  const na = '<span style="color:var(--muted)">—</span>';
+  const c = DATA.leagues[selLeague]?.color || '#3ddc84';
+
+  strip.innerHTML = [
+    {v: s ? s.shots.toLocaleString('es') : na,         lbl: 'Tiros',        color: 'var(--text)'},
+    {v: s ? s.goals.toLocaleString('es') : na,         lbl: 'Goles',        color: '#3ddc84'},
+    {v: s ? s.xg_per_shot.toFixed(3) : na,             lbl: 'xG / tiro',    color: '#29b6f6'},
+    {v: s ? (s.pct_in_box*100).toFixed(1)+'%' : na,    lbl: '% en área',    color: 'var(--text)'},
+    {v: s ? s.median_dist.toFixed(1)+' m' : na,        lbl: 'Dist. mediana',color: 'var(--text)'},
+    {v: s ? s.avg_centrality.toFixed(3) : na,          lbl: 'Centralidad',  color: 'var(--text)'},
+  ].map(({v,lbl,color}) =>
+    `<div class="kpi-card">
+      <div class="kpi-val" style="color:${color}">${v}</div>
+      <div class="kpi-lbl">${lbl}</div>
+    </div>`
+  ).join('');
+}
+
+// ── TREND CHARTS ──────────────────────────────────────────────────────────────
+function trendDataset(leagueKey, metricFn, seasons) {
+  const l = DATA.leagues[leagueKey];
+  if (!l || !l.seasons) return null;
+  return {
+    label: l.name,
+    data: seasons.map(s => {
+      const d = l.seasons[s];
+      return d ? metricFn(d) : null;
+    }),
+    borderColor: l.color,
+    backgroundColor: hexToRgba(l.color, 0.15),
+    borderWidth: leagueKey === selLeague ? 2.5 : 1.5,
+    pointRadius: leagueKey === selLeague ? 4 : 2,
+    pointBackgroundColor: l.color,
+    tension: 0.3,
+    spanGaps: true,
+  };
+}
+
+function renderTrendCharts() {
+  if (!DATA) return;
+  const seasons = DATA.all_seasons;
+  const keys = [...compareLeagues];
+
+  const configs = [
+    {id:'chart-xg',    metric: d => d.xg_per_shot,            yFmt: v=>`${v.toFixed(3)} xG`},
+    {id:'chart-dist',  metric: d => d.median_dist,            yFmt: v=>`${v.toFixed(1)} m`},
+    {id:'chart-box',   metric: d => +(d.pct_in_box*100).toFixed(1), yFmt: v=>`${v}%`},
+    {id:'chart-central',metric: d => +d.avg_centrality.toFixed(4), yFmt: v=>`${v.toFixed(3)}`},
+  ];
+
+  configs.forEach(({id, metric, yFmt}) => {
+    const canvas = document.getElementById(id);
+    if (!canvas) return;
+    if (CHARTS[id]) { CHARTS[id].destroy(); }
+
+    const datasets = keys.map(k => trendDataset(k, metric, seasons)).filter(Boolean);
+
+    CHARTS[id] = new Chart(canvas, {
+      type: 'line',
+      data: { labels: seasons.map(s=>`${s}/${+s+1}`), datasets },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { display: datasets.length > 1, position: 'bottom', labels: { boxWidth: 10, padding: 8, font:{size:10} } },
+          tooltip: {
+            backgroundColor: '#0f2218', borderColor: 'rgba(255,255,255,0.12)', borderWidth: 1,
+            callbacks: {
+              label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y != null ? yFmt(ctx.parsed.y) : '—'}`,
+            },
+          },
+        },
+        scales: {
+          x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { maxRotation: 45, font:{size:9} } },
+          y: { grid: { color: 'rgba(255,255,255,0.04)' }, beginAtZero: false },
+        },
+      },
+    });
+  });
+}
+
+// ── SEASON-SPECIFIC CHARTS ────────────────────────────────────────────────────
+function renderSeasonCharts() {
+  if (!DATA) return;
+  const l = DATA.leagues[selLeague];
+  const s = l && l.seasons ? l.seasons[selSeason] : null;
+  const color = l?.color || '#3ddc84';
+
+  // Distance distribution
+  const dcCanvas = document.getElementById('chart-distrib');
+  if (dcCanvas) {
+    if (CHARTS['chart-distrib']) CHARTS['chart-distrib'].destroy();
+    CHARTS['chart-distrib'] = new Chart(dcCanvas, {
+      type: 'bar',
+      data: {
+        labels: s ? (DATA.dist_labels || s.dist_labels || []) : [],
+        datasets: [{
+          label: 'Disparos',
+          data: s ? s.dist_bins : [],
+          backgroundColor: hexToRgba(color, 0.7),
+          borderColor: color,
+          borderWidth: 1,
+          borderRadius: 3,
+        }],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#0f2218', borderColor: 'rgba(255,255,255,0.12)', borderWidth: 1,
+            callbacks: { label: ctx => ` ${ctx.parsed.y.toLocaleString('es')} disparos` },
+          },
+        },
+        scales: {
+          x: { grid: { color: 'rgba(255,255,255,0.04)' }, title: { display: true, text: 'metros', color: '#7e93b3', font:{size:10} } },
+          y: { grid: { color: 'rgba(255,255,255,0.04)' }, beginAtZero: true },
+        },
+      },
+    });
+  }
+
+  // Situation breakdown
+  const sitCanvas = document.getElementById('chart-sit');
+  if (sitCanvas && s && s.by_situation) {
+    if (CHARTS['chart-sit']) CHARTS['chart-sit'].destroy();
+    const sitEntries = Object.entries(s.by_situation);
+    const SIT_COLORS = {
+      OpenPlay: '#3ddc84', FromCorner: '#29b6f6', DirectFreekick: '#ff6900',
+      SetPiece: '#bf5af2', Penalty: '#ff3a5e', OwnGoal: '#e8c320',
+    };
+    const SIT_LABELS = {
+      OpenPlay: 'Juego abierto', FromCorner: 'Córner', DirectFreekick: 'Tiro libre',
+      SetPiece: 'Pelota parada', Penalty: 'Penal', OwnGoal: 'Gol en contra',
+    };
+    CHARTS['chart-sit'] = new Chart(sitCanvas, {
+      type: 'doughnut',
+      data: {
+        labels: sitEntries.map(([k]) => SIT_LABELS[k] || k),
+        datasets: [{
+          data: sitEntries.map(([,v]) => v),
+          backgroundColor: sitEntries.map(([k]) => SIT_COLORS[k] || '#7e93b3'),
+          borderColor: '#040d08', borderWidth: 2,
+        }],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'right', labels: { boxWidth: 10, padding: 8, font:{size:10} } },
+          tooltip: {
+            backgroundColor: '#0f2218', borderColor: 'rgba(255,255,255,0.12)', borderWidth: 1,
+            callbacks: {
+              label: ctx => {
+                const total = ctx.dataset.data.reduce((a,b)=>a+b,0);
+                const pct = ((ctx.parsed / total)*100).toFixed(1);
+                return ` ${ctx.parsed.toLocaleString('es')} (${pct}%)`;
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+}
+
+// ── SLIDER ────────────────────────────────────────────────────────────────────
+function onSlider(idx) {
+  selSeason = DATA.all_seasons[+idx];
+  document.getElementById('season-display').textContent = `${selSeason}/${+selSeason+1}`;
+  // Refresh league card KPIs
+  buildLeagueList(DATA);
+  renderKPIs();
+  renderSeasonCharts();
+  // Update bottom chart titles
+  const dist = document.querySelector('#chart-distrib')?.closest('.chart-card')?.querySelector('.chart-title');
+  const sit  = document.querySelector('#chart-sit')?.closest('.chart-card')?.querySelector('.chart-title');
+  if (dist) dist.textContent = `Distribución de distancias — ${selSeason}/${+selSeason+1}`;
+  if (sit)  sit.textContent  = `Situación del disparo — ${selSeason}/${+selSeason+1}`;
+}
+
+// ── BOOT ──────────────────────────────────────────────────────────────────────
+loadData();
+</script>
+</body>
+</html>

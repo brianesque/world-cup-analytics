@@ -1,0 +1,12 @@
+# Raw Understat downloads (large, not committed — generate with scripts/download_understat.py)
+data/understat/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# macOS
+.DS_Store
