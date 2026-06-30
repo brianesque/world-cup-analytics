@@ -829,6 +829,34 @@ function renderTrendCharts() {
   });
 }
 
+// ── DOUGHNUT % PLUGIN (labels inside each slice) ─────────────────────────────
+const DOUGHNUT_PCT_PLUGIN = {
+  id: 'doughnutPct',
+  afterDatasetsDraw(chart) {
+    if (chart.config.type !== 'doughnut') return;
+    const data = chart.data.datasets[0]?.data;
+    if (!data?.length) return;
+    const total = data.reduce((a, b) => a + b, 0);
+    if (!total) return;
+    const ctx = chart.ctx;
+    chart.getDatasetMeta(0).data.forEach((arc, i) => {
+      const pct = data[i] / total * 100;
+      if (pct < 4) return;
+      const midAngle = (arc.startAngle + arc.endAngle) / 2;
+      const r = (arc.innerRadius + arc.outerRadius) / 2;
+      const x = arc.x + Math.cos(midAngle) * r;
+      const y = arc.y + Math.sin(midAngle) * r;
+      ctx.save();
+      ctx.fillStyle = 'rgba(255,255,255,0.92)';
+      ctx.font = 'bold 10px -apple-system,sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(pct.toFixed(0) + '%', x, y);
+      ctx.restore();
+    });
+  }
+};
+
 // ── BAR % PLUGIN ─────────────────────────────────────────────────────────────
 const BAR_PCT_PLUGIN = {
   id: 'barPct',
@@ -909,6 +937,7 @@ function renderSeasonCharts() {
       const entries = Object.entries(s.by_situation);
       CHARTS['chart-sit'] = new Chart(sc, {
         type:'doughnut',
+        plugins: [DOUGHNUT_PCT_PLUGIN],
         data:{
           labels: entries.map(([k])=>SIT_L[k]||k),
           datasets:[{data:entries.map(([,v])=>v),
@@ -921,7 +950,7 @@ function renderSeasonCharts() {
             legend:{
               position:'right',
               labels:{
-                boxWidth:10, padding:6, font:{size:9},
+                boxWidth:10, padding:6, font:{size:9}, color:'#eaf2fb',
                 generateLabels(chart) {
                   const d     = chart.data;
                   const total = d.datasets[0].data.reduce((a,b)=>a+b,0);
@@ -933,6 +962,8 @@ function renderSeasonCharts() {
                     index: i,
                     datasetIndex: 0,
                     hidden: false,
+                    fontColor: '#eaf2fb',
+                    color: '#eaf2fb',
                   }));
                 }
               }
