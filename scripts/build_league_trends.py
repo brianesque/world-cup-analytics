@@ -3,7 +3,7 @@
 Aggregate raw Understat shot data into docs/trends/data.json for the dashboard.
 
 Usage:
-    python scripts/build_league_trends.py
+    python3 scripts/build_league_trends.py
 
 Reads:   data/understat/shots/{league}_{season}.json   (from download_understat.py)
 Writes:  docs/trends/data.json
