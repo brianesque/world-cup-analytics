@@ -1,5 +1,6 @@
-# Raw Understat downloads (large, not committed — generate with scripts/download_understat.py)
+# Raw shot data downloads (large, not committed — generate with download scripts)
 data/understat/
+data/statsbomb/
 
 # Python
 __pycache__/

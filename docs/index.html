@@ -37,12 +37,18 @@
 <body>
 <div class="wrap">
   <h1>World Cup Analytics</h1>
-  <p class="sub">Two dashboards, two different data-engineering problems: real historical event data vs. a real but partially-stale live source.</p>
+  <p class="sub">Three dashboards, three different data-engineering problems: live tournament data, historical shot analytics, and real event data frozen in time.</p>
 
   <a class="card" href="./tracker/">
     <span class="tag">Live · updates daily</span>
     <h2>2026 Tournament Tracker →</h2>
     <p>Group standings, top scorers, results and fixtures for the ongoing FIFA World Cup 2026, rebuilt daily by a GitHub Action straight from a public dataset (with a manual fact-checked patch layer for anything the source hasn't caught up on yet).</p>
+  </a>
+
+  <a class="card" href="./trends/">
+    <span class="tag">Analytics · 6 ligas · 11 temporadas</span>
+    <h2>Liga Trends — Shot Analytics →</h2>
+    <p>554,000+ tiros de Premier League, La Liga, Bundesliga, Serie A, Ligue 1 y Liga Rusa (2014–2024). xG por disparo, distancia al arco, % en área y centralidad, con comparación entre ligas y filtro por equipo.</p>
   </a>
 
   <a class="card" href="./shot-map/">
@@ -52,7 +58,7 @@
   </a>
 
   <footer>
-    Built with Claude · data sources and methodology documented in <a href="https://github.com">README.md</a>
+    Built with Claude · data sources and methodology documented in <a href="https://github.com/brianesquenazi/world-cup-analytics">README.md</a>
   </footer>
 </div>
 </body>
